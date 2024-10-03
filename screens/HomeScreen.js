@@ -83,20 +83,10 @@ export const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  bannerContainer: {
-    marginLeft: 20,
-    marginTop: 24
-
-  },
   container: {
     flex: 1,
     zIndex: -1,
     backgroundColor: Colors.white,
-  },
-  featuredContainer: {
-    marginTop: 20,
-    marginLeft: 0,
-    marginRight: 0,
   },
   titleText: {
     fontSize: 16,
@@ -126,79 +116,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontWeight: '600',
     alignItems: 'center',
-
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    marginHorizontal: 4,
-  },
-  activeDot: {
-    backgroundColor: Colors.yellow,
-    paddingHorizontal: 16, // Adjust padding as needed
-  },
-  qrSection: {
-    backgroundColor: Colors.yellow,
-    borderRadius: 14,
-    color: Colors.white,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: 10,
-    marginTop: 20,
-  },
-  qrCodeContainer: {
-    padding: 16,
-    paddingRight: 0,
-  },
-  pointsBalanceContainer: {
-    flex: 1,
-    alignItems: 'flex-start',
-    marginLeft: 20,
-    color: Colors.white,
-    textTransform: 'uppercase',
-  },
-  customerName: {
-    fontWeight: 'bold',
-    color: Colors.black,
-    fontSize: 22,
-    textTransform: 'uppercase',
-    paddingTop: 12,
-  },
-  featuredImageContainer: {
-    width: ITEM_WIDTH, // Take 80% of the screen width for the item
-    height: 200,
-    borderRadius: 10,
-    overflow: 'hidden',
-    marginLeft: 2, // Add spacing between images
-  },
-  imageSpacing: {
-    marginRight: screenWidth * OVERLAP_RATIO, // Adjust overlap spacing
-  },
-  featuredImage: {
-    flex: 1,
-    opacity: 0.9,
-    resizeMode: 'cover',
-  },
-  offersFeaturedImageContainer: {
-    width: ITEM_WIDTH_OFFERS, // Take 80% of the screen width for the item
-    height: 200,
-    borderRadius: 10,
-    overflow: 'hidden',
-    marginLeft: 2, // Add spacing between images
-  },
-  offersFeaturedImage: {
-    flex: 1,
-    opacity: 0.9,
-    resizeMode: 'cover',
-  },
+  }
 });
 
 export default HomeScreen;
