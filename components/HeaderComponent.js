@@ -3,11 +3,9 @@ import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { Logo } from './Logo';
 import { Icon } from './Icon';
 import { Images, Colors } from '../config';
-import { CartContext } from '../providers';
 
 
 export const HeaderComponent = ({ navigation, title, navigationTo, displayCartIcon = true }) => {
-    const { getCartQuantity } = useContext(CartContext);
     const cartQuantity = getCartQuantity();
 
     return (
@@ -31,11 +29,6 @@ export const HeaderComponent = ({ navigation, title, navigationTo, displayCartIc
                     <>
                         <TouchableOpacity onPress={() => navigation.navigate('CartScreen')}>
                             <Icon name="shopping-outline" size={32} color={Colors.darkGrey} />
-                            {cartQuantity > 0 && (
-                                <View style={styles.cartBadge}>
-                                    <Text style={styles.cartBadgeText}>{cartQuantity}</Text>
-                                </View>
-                            )}
                         </TouchableOpacity>
                     </>
                 )}
