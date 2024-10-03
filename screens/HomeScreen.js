@@ -17,15 +17,7 @@ export const HomeScreen = ({ navigation }) => {
   const navigator = useNavigation();
   const [userDetail, setUserDetail] = useState({});
   const [loading, setLoading] = useState(true);
-  const [banners, setBanners] = useState([]);
-  const [whatsNew, setWhatsNew] = useState([]);
-  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
-  const [activeWhatsNewIndex, setActiveWhatsNewIndex] = useState(0);
   const { user, setUser } = useContext(AuthenticatedUserContext);
-  const scrollXBanner = useRef(new Animated.Value(0)).current;
-  const scrollXWhatsNew = useRef(new Animated.Value(0)).current;
-  const bannerScrollViewRef = useRef(null);
-  const whatsNewScrollViewRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,43 +61,6 @@ export const HomeScreen = ({ navigation }) => {
     fetchUserData();
   }, [user]);
 
-  // Update the scroll event handlers to set the active index
-  const handleBannerScroll = (event) => {
-    const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const index = Math.round(contentOffsetX / ITEM_WIDTH);
-    setActiveBannerIndex(index);
-  };
-
-  const handleWhatsNewScroll = (event) => {
-    const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const index = Math.round(contentOffsetX / ITEM_WIDTH);
-    setActiveWhatsNewIndex(index);
-  };
-
-  const getDayOrNight = () => {
-    // Navigate to DetailsScreen and pass item details as params
-    const sunriseHour = 6;  // 6:00 AM
-    const sunsetHour = 18;  // 6:00 PM
-
-    const hours = new Date().getHours();
-
-    if (hours >= sunriseHour && hours < sunsetHour) {
-      return 'Lunch';
-    } else {
-      return 'Dinner';
-    }
-  };
-
-  const handleImagePress = (item, title) => {
-    // Navigate to DetailsScreen and pass item details as params
-    navigation.navigate('DetailScreen', { item, title });
-  };
-
-  const handleOrderNowOnClick = () => {
-    // Navigate to DetailsScreen and pass item details as params
-    navigator.navigate('MenuScreen', { screen: 'MenuScreen' });
-
-  };
 
   return (
     <>
@@ -121,72 +76,6 @@ export const HomeScreen = ({ navigation }) => {
           {/* User Details Section */}
           {!user && <LoginComponent navigation={navigation} />}
 
-          <View style={styles.featuredContainer}>
-            <Animated.FlatList
-              horizontal
-              data={banners}
-              keyExtractor={(item) => item.uid}
-              renderItem={({ item, index }) => (
-                <View style={[styles.featuredImageContainer, index !== banners.length - 1 && styles.imageSpacing]}>
-                  <Image
-                    source={{ uri: item.imageUrl }}
-                    style={styles.featuredImage}
-                  />
-
-                </View>
-              )}
-              showsHorizontalScrollIndicator={false}
-              pagingEnabled
-              snapToInterval={ITEM_WIDTH + screenWidth * OVERLAP_RATIO} // Adjusted snap interval
-              decelerationRate="fast"
-              onScroll={handleBannerScroll} // Update to use handleBannerScroll
-              scrollEventThrottle={16}
-              ref={bannerScrollViewRef}
-            />
-            {/* Dots for Banners */}
-            <View style={styles.dotsContainer}>
-              {banners.map((_, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => bannerScrollViewRef.current.scrollToIndex({ index, animated: true })}
-                  style={[styles.dot, activeBannerIndex === index ? styles.activeDot : null]}
-                />
-              ))}
-
-            </View>
-          </View>
-          <View style={styles.buttonContainer}>
-            <Text style={styles.title}>Ready for {getDayOrNight()}?</Text>
-            <Button style={styles.button} onPress={handleOrderNowOnClick}>
-              <Text style={styles.buttonText}>{'Order now'}</Text>
-            </Button>
-          </View>
-
-          <View style={styles.bannerContainer}>
-            <Text style={styles.title}>Store Offers</Text>
-            <Animated.FlatList
-              horizontal
-              data={whatsNew}
-              keyExtractor={(item) => item.uid}
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => handleImagePress(item, "Offers")}>
-                  <View style={[styles.offersFeaturedImageContainer, styles.imageSpacing]}>
-                    <Image
-                      source={{ uri: item.imageUrl }}
-                      style={styles.offersFeaturedImage}
-                    />
-                  </View>
-                </TouchableOpacity>
-              )}
-              showsHorizontalScrollIndicator={false}
-              pagingEnabled
-              snapToInterval={ITEM_WIDTH + screenWidth * OVERLAP_RATIO} // Adjusted snap interval
-              decelerationRate="fast"
-              onScroll={handleWhatsNewScroll} // Update to use handleWhatsNewScroll
-              scrollEventThrottle={16}
-              ref={whatsNewScrollViewRef}
-            />
-          </View>
         </View>
       </ScrollView>
     </>
