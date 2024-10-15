@@ -8,6 +8,7 @@ export const Colors = {
   mediumGray: '#6e6869',
   yellow: '#ffcb2b',
   red:'#FF0000',
+  brandBlue: '#00367d',
   brightYellow: '#FFCC00',
   richGold: '#c8b273',
   political: "#FFB2A6",

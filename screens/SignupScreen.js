@@ -45,9 +45,7 @@ export const SignupScreen = ({ navigation }) => {
 
             // If email and phone number are not already registered, proceed with signup
             const result = await createUserWithEmailAndPassword(auth, email, password);
-            const timestamp = new Date().getTime();
-            const randomNum = Math.floor(Math.random() * 9000000000) + 1000000000;
-            const memberNumber = parseInt(timestamp.toString().slice(-3) + randomNum.toString().slice(-7));
+            const createdAt = new Date().getTime();
 
             if (result) {
                 const user = {
@@ -55,7 +53,7 @@ export const SignupScreen = ({ navigation }) => {
                     phoneNumber,
                     firstName,
                     lastName,
-                    memberNumber,
+                    createdAt,
                     dateOfBirth: dateOfBirth // Assuming dateOfBirth is present in values
                 }
                 await setDoc(doc(db, "users", result.user.uid), user);
@@ -88,12 +86,10 @@ export const SignupScreen = ({ navigation }) => {
 
     return (
         <>
-            <HeaderComponent navigationTo={"LoginScreen"} navigation={navigation} />
+            <HeaderComponent navigationTo={"LoginScreen"} navigation={navigation} title={"Create Account"} />
             <View style={styles.container}>
                 <KeyboardAwareScrollView enableOnAndroid={true}>
-                    <View>
-                        <Text style={styles.screenTitle}>Create a new account!</Text>
-                    </View>
+
                     <Formik
                         initialValues={{
                             email: '',
@@ -239,13 +235,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 8,
-        backgroundColor: Colors.yellow,
+        backgroundColor: Colors.brandBlue,
         padding: 10,
         borderRadius: 8
     },
     buttonText: {
         fontSize: 20,
-        color: Colors.black,
+        color: Colors.white,
         fontWeight: '700'
     },
     borderlessButtonContainer: {

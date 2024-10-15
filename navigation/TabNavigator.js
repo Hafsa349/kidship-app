@@ -7,6 +7,7 @@ import { AuthenticatedUserContext } from '../providers';
 import { Colors, auth } from '../config';
 import { Icon } from '../components';
 import { AuthStack, AppStack, MoreAppStack } from '../navigation';
+import { MoreScreen } from '../screens';
 
 // Create bottom tab navigator
 const Tab = createBottomTabNavigator();
@@ -48,7 +49,7 @@ export const TabNavigator = () => {
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
                     tabBarIcon: ({ focused }) => (
-                        <Icon name={focused ? "home" : "home-outline"} color={focused ? Colors.yellow :  Colors.mediumGray} size={28}
+                        <Icon name={focused ? "home" : "home-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
@@ -57,7 +58,7 @@ export const TabNavigator = () => {
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
                     tabBarIcon: ({focused}) => (
-                        <Icon name={focused ? "wallet" : "wallet-outline"} color={focused ? Colors.yellow :  Colors.mediumGray} size={28}
+                        <Icon name={focused ? "wallet" : "wallet-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
@@ -68,7 +69,7 @@ export const TabNavigator = () => {
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
                     tabBarIcon: ({focused}) => (
-                        <Icon name={"dots-horizontal" } color={focused ? Colors.yellow :  Colors.mediumGray} size={28}
+                        <Icon name={"dots-horizontal" } color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
                             style={{ marginRight: 0 }} />
                     ),
                 }} />

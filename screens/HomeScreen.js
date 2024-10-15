@@ -1,20 +1,15 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
-import { Image, Dimensions, Animated, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import React, { useState, useContext, useEffect } from 'react';
+import { Dimensions, StyleSheet, View, ActivityIndicator, Text, Image, FlatList, TouchableOpacity } from 'react-native';
 import { Colors, auth } from '../config';
-import { HeaderComponent, LoginComponent, Button } from '../components';
+import { HeaderComponent } from '../components';
 import { onAuthStateChanged } from 'firebase/auth';
 import { AuthenticatedUserContext } from '../providers';
-import { fetchUserDetails, getBanners, getOffers } from '../services';
-import { useNavigation } from '@react-navigation/native';
+import { fetchUserDetails, getPosts } from '../services';
 
 const screenWidth = Dimensions.get('window').width;
-const ITEM_WIDTH = screenWidth * 0.9; // Take 80% of the screen width for the item
-const ITEM_WIDTH_OFFERS = screenWidth * 0.43; // Take 80% of the screen width for the item
-const ITEM_HEIGHT = 300;
-const OVERLAP_RATIO = 0.01; // Adjust overlap ratio as needed
 
 export const HomeScreen = ({ navigation }) => {
-  const navigator = useNavigation();
+  const [posts, setPosts] = useState([]);
   const [userDetail, setUserDetail] = useState({});
   const [loading, setLoading] = useState(true);
   const { user, setUser } = useContext(AuthenticatedUserContext);
@@ -22,20 +17,16 @@ export const HomeScreen = ({ navigation }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const bannerData = await getBanners();
-        setBanners(bannerData.sort((a, b) => a.sort - b.sort));
-
-        const whatsNewData = await getOffers();
-        setWhatsNew(whatsNewData);
+        const postData = await getPosts();
+        console.log(postData)
+        setPosts(postData);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching posts:', error);
       }
-
       setLoading(false);
     };
-
-    fetchData(); // Call fetchData only when component mounts
-  }, []); // Empty dependency array to ensure it runs only once on mount
+    fetchData();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, authenticatedUser => {
@@ -50,7 +41,6 @@ export const HomeScreen = ({ navigation }) => {
       if (user && user.uid) {
         try {
           const userDetails = await fetchUserDetails(user.uid);
-          console.log('userDetails', userDetails)
           setUserDetail(userDetails);
         } catch (error) {
           console.error('Error fetching user details:', error);
@@ -61,62 +51,116 @@ export const HomeScreen = ({ navigation }) => {
     fetchUserData();
   }, [user]);
 
+  const renderPost = ({ item }) => (
+    <View style={styles.postCard}>
+      <View style={styles.postHeader}>
+        <Image
+          source={{ uri: item.authorAvatar }} // Assuming there's an avatar URL for the author
+          style={styles.avatar}
+        />
+        <View>
+          <Text style={styles.authorName}>{item.authorName}</Text>
+          <Text style={styles.postTime}>{item.timeAgo}</Text>
+        </View>
+      </View>
+      <View style={styles.postContent}>
+        {/* Assuming the post has an image or text */}
+        <Image source={{ uri: item.image }} style={styles.postImage} />
+        <Text style={styles.postText}>{item.text}</Text>
+      </View>
+      {/* <View style={styles.postActions}>
+        <Text style={styles.likes}>{item.likes} likes</Text>
+        <Text style={styles.comments}>{item.comments} comments</Text>
+      </View> */}
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <>
+        <HeaderComponent navigation={navigation} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      </>
+    );
+  }
 
   return (
     <>
       <HeaderComponent navigation={navigation} />
-      {loading && (
-        <View style={styles.container}>
-          <Text>Loading...</Text>
-        </View>
-      )}
-      <ScrollView>
-        {/* Banners */}
-        <View>
-          {/* User Details Section */}
-          {!user && <LoginComponent navigation={navigation} />}
-
-        </View>
-      </ScrollView>
+      <View style={styles.container}>
+      <FlatList
+        data={posts}
+        renderItem={renderPost}
+        keyExtractor={(item) => item.id} // Assuming each post has a unique id
+        contentContainerStyle={styles.container}
+      />
+      </View>
     </>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    zIndex: -1,
     backgroundColor: Colors.white,
+    padding: 10,
   },
-  titleText: {
-    fontSize: 16,
-    paddingTop: 10,
-    fontWeight: '600'
-  },
-  buttonContainer: {
-    width: '100%',
-    marginTop: 24,
-    marginLeft: 18,
-  },
-  button: {
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.yellow,
-    padding: 14,
-    borderRadius: 8,
-    width: '92%'
+    backgroundColor: Colors.white,
   },
-  buttonText: {
-    fontSize: 20,
-    color: Colors.darkGrey,
-    fontWeight: '700'
+  postCard: {
+    backgroundColor: Colors.lightGrey,
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
   },
-  title: {
-    fontSize: 22,
-    marginBottom: 4,
-    fontWeight: '600',
+  postHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-  }
+    marginBottom: 10,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  authorName: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  postTime: {
+    fontSize: 12,
+    color: Colors.grey,
+  },
+  postContent: {
+    marginBottom: 10,
+  },
+  postImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
+  },
+  postText: {
+    fontSize: 14,
+    color: Colors.darkGrey,
+  },
+  postActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  likes: {
+    fontSize: 14,
+    color: Colors.darkGrey,
+  },
+  comments: {
+    fontSize: 14,
+    color: Colors.darkGrey,
+  },
 });
 
 export default HomeScreen;

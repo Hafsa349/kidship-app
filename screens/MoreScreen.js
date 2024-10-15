@@ -23,7 +23,6 @@ export const MoreScreen = ({ navigation }) => {
 
     let settingsList = [
         { name: user ? "My Account" : "Sign in or create an account", screen: user ? "MyAccountScreen" : "LoginScreen"},
-        { name: "Locations", screen: "LocationScreen" },
         { name: "Terms and Conditions", screen: "TermsAndConditionScreen" },
         { name: "Privacy Policy", screen: "PrivacyPolicyScreen" },
     ];
@@ -104,7 +103,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 8,
-        backgroundColor: Colors.yellow,
+        backgroundColor: Colors.brandBlue,
         padding: 10,
         borderRadius: 8
     },

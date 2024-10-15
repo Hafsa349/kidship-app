@@ -23,11 +23,8 @@ export const ForgotPasswordScreen = ({ navigation }) => {
 
   return (
     <>
-    <HeaderComponent navigationTo={"Login"} navigation={navigation} />
+    <HeaderComponent navigationTo={"Login"} navigation={navigation} title={"Reset your password"} />
     <View isSafe style={styles.container}>
-      <View>
-        <Text style={styles.screenTitle}>Reset your password</Text>
-      </View>
       <Formik
         initialValues={{ email: '' }}
         validationSchema={passwordResetSchema}
@@ -61,7 +58,7 @@ export const ForgotPasswordScreen = ({ navigation }) => {
             ) : null}
             {/* Password Reset Send Email  button */}
             <Button style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>Send Reset Email</Text>
+              <Text style={styles.buttonText}>Send reset email</Text>
             </Button>
           </>
         )}
@@ -92,7 +89,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
-    backgroundColor: Colors.yellow,
+    backgroundColor: Colors.brandBlue,
     padding: 10,
     borderRadius: 8
   },

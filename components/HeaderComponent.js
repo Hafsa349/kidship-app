@@ -1,23 +1,21 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { Logo } from './Logo';
 import { Icon } from './Icon';
 import { Images, Colors } from '../config';
 
 
-export const HeaderComponent = ({ navigation, title, navigationTo, displayCartIcon = true }) => {
-    const cartQuantity = getCartQuantity();
-
+export const HeaderComponent = ({ navigation, title, navigationTo, user = null}) => {
     return (
         <View style={styles.header}>
             <View style={styles.headerLeft}>
                 {navigationTo ? (
-                    <TouchableOpacity style={{ paddingTop: 18 }} onPress={() => navigation.goBack()}>
-                        <Icon name="keyboard-backspace" size={30} color="black" />
+                    <TouchableOpacity style={{ paddingTop: 20, paddingBottom: 10 }} onPress={() => navigation.goBack()}>
+                        <Icon name="keyboard-backspace" size={30} color={Colors.white} />
                     </TouchableOpacity>
                 ) : (
                     <TouchableOpacity onPress={() => navigation.navigate('HomeScreen')}>
-                        <Logo uri={Images.logo} width={80} height={60} />
+                        <Logo uri={Images.logo} width={60} height={60} />
                     </TouchableOpacity>
                 )}
             </View>
@@ -25,13 +23,11 @@ export const HeaderComponent = ({ navigation, title, navigationTo, displayCartIc
                 <Text style={styles.title}>{title}</Text>
             </View>
             <View style={styles.headerRight}>
-                {displayCartIcon && (
-                    <>
-                        <TouchableOpacity onPress={() => navigation.navigate('CartScreen')}>
-                            <Icon name="shopping-outline" size={32} color={Colors.darkGrey} />
-                        </TouchableOpacity>
-                    </>
-                )}
+                 <>
+                    <TouchableOpacity onPress={() => navigation.navigate('CartScreen')}>
+                        <Icon name="bell-outline" size={32} color={Colors.white} />
+                    </TouchableOpacity>
+                </>
             </View>
         </View>
     );
@@ -43,7 +39,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 16,
         paddingBottom: 8,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.brandBlue,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
@@ -60,33 +56,17 @@ const styles = StyleSheet.create({
     headerCenter: {
         flex: 2,
         justifyContent: 'center',
+        paddingTop: 10,
         alignItems: 'center',
-        paddingTop: 16,
     },
     headerRight: {
         flex: 1,
         alignItems: 'flex-end',
-        paddingTop: 22,
-    },
-    cartBadge: {
-        position: 'absolute',
-        right: -10,
-        top: -5,
-        backgroundColor: 'red',
-        borderRadius: 10,
-        width: 20,
-        height: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    cartBadgeText: {
-        color: 'white',
-        fontSize: 12,
-        fontWeight: 'bold',
+        paddingTop: 16,
     },
     title: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: Colors.black,
+        color: Colors.white,
     },
 });

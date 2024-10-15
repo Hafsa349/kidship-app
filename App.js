@@ -1,22 +1,18 @@
 import React from 'react';
+import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StripeProvider } from '@stripe/stripe-react-native';
 import { RootNavigator } from './navigation/RootNavigator';
-import { AuthenticatedUserProvider, CartProvider } from './providers';
+import { AuthenticatedUserProvider } from './providers';
 import { Colors, expoConfig } from './config';
 
 const App = () => {
   return (
-    <StripeProvider 
-    publishableKey={expoConfig?.extra?.stripePublishableKey}>
       <AuthenticatedUserProvider>
-        <SafeAreaProvider style={{color: Colors.black }}>
-          <CartProvider>
+        <StatusBar barStyle="light-content" />
+        <SafeAreaProvider>
             <RootNavigator />
-          </CartProvider>
         </SafeAreaProvider>
       </AuthenticatedUserProvider>
-    </StripeProvider>
   );
 };
 

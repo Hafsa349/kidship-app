@@ -161,13 +161,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
-    backgroundColor: Colors.yellow,
+    backgroundColor: Colors.brandBlue,
     padding: 10,
     borderRadius: 8
   },
   buttonText: {
     fontSize: 20,
-    color: Colors.black,
+    color: Colors.white,
     fontWeight: '700'
   },
   disabledInput: {
