@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: 24,
-    color: Colors.secondary200,
+    color: Colors.white,
     fontFamily: 'psemibold',
     textAlign: 'center',
   },
