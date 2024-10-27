@@ -2,7 +2,6 @@ import 'dotenv/config';
 
 export default {
   expo: {
-    plugins: ["expo-image-picker"],
     name: 'Kidship',
     slug: 'kidship',
     privacy: 'public',
@@ -38,6 +37,8 @@ export default {
         projectId: "3bf459e5-1187-474c-a3c3-5198b85eccb0"
       }
     },
+    plugins: ['expo-router', 'expo-image-picker']
+      
 
   }
 };
