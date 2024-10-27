@@ -11,6 +11,7 @@ import { HomeWorkScreen } from './HomeWorkScreen'
 import { CalendarScreen } from './CalendarScreen'
 import { CreatePostScreen } from './CreatePostScreen'
 import { NotificationScreen } from './NotificationScreen'
+import { PostDetailScreen } from './PostDetailScreen'
 
 
 export {
@@ -26,5 +27,6 @@ export {
     HomeWorkScreen,
     CalendarScreen,
     CreatePostScreen,
-    NotificationScreen
+    NotificationScreen,
+    PostDetailScreen
 };

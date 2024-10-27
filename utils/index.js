@@ -25,3 +25,33 @@ export const passwordResetSchema = Yup.object().shape({
     .label('Email')
     .email('Enter a valid email')
 });
+
+export const convertFirestoreTimestampToDate = (timestamp) => {
+  if (!timestamp || typeof timestamp !== 'object') return null;
+
+  const { seconds, nanoseconds } = timestamp;
+  return new Date(seconds * 1000 + Math.floor(nanoseconds / 1000000));
+};
+export const formatDateToDays = (timestamp) => {
+  const date = convertFirestoreTimestampToDate(timestamp);
+
+  if (!date) {
+    return 'Invalid date'; // Handle null or invalid timestamps
+  }
+
+  const now = new Date();
+  const timeDiff = now - date;
+  const oneDay = 24 * 60 * 60 * 1000; // milliseconds in a day
+  const oneWeek = 7 * oneDay;
+
+  if (timeDiff < oneDay) {
+    return 'Today';
+  } else if (timeDiff < oneWeek) {
+    return `${Math.floor(timeDiff / oneDay)} days ago`;
+  } else if (timeDiff < 2 * oneWeek) {
+    return '1 week ago';
+  } else {
+    const weeksAgo = Math.floor(timeDiff / oneWeek);
+    return `${weeksAgo} week${weeksAgo > 1 ? 's' : ''} ago`; // pluralize for more than 1 week
+  }
+};

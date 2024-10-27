@@ -4,24 +4,54 @@ import { Colors, auth } from '../config';
 import { HeaderComponent } from '../components';
 import { onAuthStateChanged } from 'firebase/auth';
 import { AuthenticatedUserContext } from '../providers';
-import { fetchUserDetails, getPosts } from '../services';
+import { fetchUserDetailsByIds, getPosts } from '../services';
+import { formatDateToDays } from '../utils';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const screenWidth = Dimensions.get('window').width;
 
 export const HomeScreen = ({ navigation }) => {
   const [posts, setPosts] = useState([]);
-  const [userDetail, setUserDetail] = useState({});
   const [loading, setLoading] = useState(true);
   const { user, setUser } = useContext(AuthenticatedUserContext);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const postData = await getPosts();
-        console.log(postData)
-        setPosts(postData);
+
+        // Collect unique author IDs
+        const userIds = postData.map(post => post.authorId).filter(id => id);
+        const uniqueUserIds = [...new Set(userIds)]; // Remove duplicates
+
+        // Fetch author details in bulk
+        const authorDetailsArray = await fetchUserDetailsByIds(uniqueUserIds);
+
+        // Create a map for quick lookup by author ID
+        const authorDetailsMap = Object.fromEntries(
+          authorDetailsArray.map(user => [user.uid, user])
+        );
+
+        // Attach author details to each post
+        const postsWithAuthorDetails = postData.map(post => ({
+          ...post,
+          authorDetails: authorDetailsMap[post.authorId] || {
+            name: 'Unknown',
+            image_url: 'unknown', // Default avatar
+          },
+        }));
+
+        // Sort posts based on createdAt date in descending order
+        const sortedPosts = postsWithAuthorDetails.sort((a, b) => {
+          const dateA = a.createdAt?.seconds * 1000 + a.createdAt?.nanoseconds / 1000000; // Convert Firestore timestamp to milliseconds
+          const dateB = b.createdAt?.seconds * 1000 + b.createdAt?.nanoseconds / 1000000; // Convert Firestore timestamp to milliseconds
+          return dateB - dateA; // Descending order
+        });
+
+        setPosts(sortedPosts);
       } catch (error) {
-        console.error('Error fetching posts:', error);
+        console.error('Error fetching posts or user details:', error);
       }
       setLoading(false);
     };
@@ -36,45 +66,45 @@ export const HomeScreen = ({ navigation }) => {
     return () => unsubscribe();
   }, [setUser]);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (user && user.uid) {
-        try {
-          const userDetails = await fetchUserDetails(user.uid);
-          setUserDetail(userDetails);
-        } catch (error) {
-          console.error('Error fetching user details:', error);
-        }
-      }
-    };
+  const renderPost = ({ item }) => {
+    const displayName = `${item.authorDetails?.firstName || ''}`.trim();
+    const createdAt = formatDateToDays(item.createdAt);
 
-    fetchUserData();
-  }, [user]);
-
-  const renderPost = ({ item }) => (
-    
-    <View style={styles.postCard}>
-      <View style={styles.postHeader}>
-        <Image
-          source={{ uri: item.authorAvatar }} // Assuming there's an avatar URL for the author
-          style={styles.avatar}
-        />
-        <View>
-          <Text style={styles.authorName}>{item.authorName}</Text>
-          <Text style={styles.postTime}>{item.timeAgo}</Text>
+    return (
+      <TouchableOpacity
+        style={styles.postCard}
+        onPress={() => navigation.navigate('PostDetailScreen', { post: item })} // Navigate to DetailScreen
+      >
+        {displayName && (
+          <View style={styles.postHeader}>
+            <Image
+              source={{ uri: item.authorDetails?.image_url || 'https://path/to/dummy-avatar.png' }}
+              style={styles.avatar}
+            />
+            <View style={styles.headerContent}>
+              <Text style={styles.authorName}>{displayName}</Text>
+              <Text style={styles.createdAt}>{createdAt}</Text> 
+            </View>
+          </View>
+        )}
+        <Image source={{ uri: item.image_url }} style={styles.postImage} />
+        <View style={styles.interactionContainer}>
+          <View style={styles.likesContainer}>
+            <Icon name="heart" size={16} color={Colors.primary} />
+            <Text style={styles.likes}>{item.likes} likes</Text>
+          </View>
+          <View style={styles.commentsContainer}>
+            <Icon name="chatbubble-outline" size={16} color={Colors.primary} />
+            <Text style={styles.comments}>{item.comments ? item.comments.length : 0} comments</Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.postContent}>
-        {/* Assuming the post has an image or text */}
-        <Image source={{ uri: item.image }} style={styles.postImage} />
-        <Text style={styles.postText}>{item.text}</Text>
-      </View>
-      {/* <View style={styles.postActions}>
-        <Text style={styles.likes}>{item.likes} likes</Text>
-        <Text style={styles.comments}>{item.comments} comments</Text>
-      </View> */}
-    </View>
-  );
+        <Text style={styles.postText}>
+          {item.text.length > 250 ? item.text.slice(0, 250) + '...' : item.text}
+        </Text>
+        <Text style={styles.postTime}>{item.timeAgo}</Text>
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
@@ -89,15 +119,13 @@ export const HomeScreen = ({ navigation }) => {
 
   return (
     <>
-        <HeaderComponent title="KidShip" navigation={navigation} />
-        <View style={styles.container}>
+      <HeaderComponent title="KidShip" navigation={navigation} />
       <FlatList
         data={posts}
         renderItem={renderPost}
-        keyExtractor={(item) => item.id} // Assuming each post has a unique id
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.container}
       />
-      </View>
     </>
   );
 };
@@ -114,53 +142,78 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   postCard: {
-    backgroundColor: Colors.lightGrey,
+    backgroundColor: Colors.white,
     borderRadius: 10,
     padding: 15,
     marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   postHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
+    justifyContent: 'space-between', // Space between avatar and header content
+  },
+  headerContent: {
+    flex: 1, // Allow it to take remaining space
   },
   avatar: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
     borderRadius: 20,
     marginRight: 10,
+  },
+  createdAt: {
+    fontSize: 14,
+    color: Colors.grey,
+    textAlign: 'left', // Align text to the right
   },
   authorName: {
     fontWeight: 'bold',
     fontSize: 16,
   },
-  postTime: {
-    fontSize: 12,
-    color: Colors.grey,
-  },
-  postContent: {
-    marginBottom: 10,
-  },
   postImage: {
     width: '100%',
-    height: 200,
+    height: 250,
     borderRadius: 10,
+    marginVertical: 10,
   },
-  postText: {
-    fontSize: 14,
-    color: Colors.darkGrey,
-  },
-  postActions: {
+  interactionContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  likesContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   likes: {
     fontSize: 14,
     color: Colors.darkGrey,
+    marginLeft: 5,
+  },
+  commentsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   comments: {
     fontSize: 14,
     color: Colors.darkGrey,
+    marginLeft: 5,
+  },
+  postText: {
+    fontSize: 14,
+    color: Colors.darkGrey,
+    marginVertical: 10,
+  },
+  postTime: {
+    fontSize: 12,
+    color: Colors.grey,
   },
 });
 

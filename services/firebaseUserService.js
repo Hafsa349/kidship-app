@@ -1,6 +1,5 @@
 import { collection, doc, getDoc, getDocs, query, where, addDoc, updateDoc } from "firebase/firestore";
 import { db } from '../config';
-import { } from './firebasePublicDataService'
 export const fetchUserDetails = async (uid) => {
     try {
         console.log('Fetching user details', uid);
@@ -19,6 +18,28 @@ export const fetchUserDetails = async (uid) => {
         return null
     }
 };
+
+export const fetchUserDetailsByIds = async (userIds) => {
+    try {
+      const userDetails = await Promise.all(
+        userIds.map(async (uid) => {
+          const docRef = doc(db, "users", uid);
+          const docSnap = await getDoc(docRef);
+  
+          if (docSnap.exists()) {
+            return { ...docSnap.data(), uid };
+          } else {
+            console.log(`No document found for user ID: ${uid}`);
+            return { uid, name: "Unknown", image_url: "https://path/to/dummy-avatar.png" }; // Default values for missing users
+          }
+        })
+      );
+      return userDetails;
+    } catch (error) {
+      console.error('Error fetching user details in bulk:', error);
+      return null;
+    }
+  };
 
 export const fetchUserByPhoneNumber = async (phoneNumber) => {
     try {

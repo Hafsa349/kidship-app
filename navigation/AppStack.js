@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { HomeScreen,
   MyAccountScreen, MoreScreen,
   LoginScreen, SignupScreen, ForgotPasswordScreen, CreatePostScreen, CalendarScreen, HomeWorkScreen,
-  NotificationScreen } from '../screens';
+  NotificationScreen, PostDetailScreen } from '../screens';
 
 const { Navigator, Screen } = createStackNavigator();
 
@@ -17,6 +17,7 @@ export const AppStack = () => {
       <Screen component={HomeWorkScreen} name="HomeWorkScreen" />
       <Screen component={CalendarScreen} name="CalendarScreen" />
       <Screen component={CreatePostScreen} name="CreatePostScreen" />
+      <Screen component={PostDetailScreen} name="PostDetailScreen" />
       <Screen component={MoreScreen} name="MoreScreen" />
       <Screen component={LoginScreen} name="LoginScreen" />
       <Screen component={SignupScreen} name="SignupScreen" />
