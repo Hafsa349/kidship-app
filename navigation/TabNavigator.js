@@ -37,7 +37,7 @@ export const TabNavigator = () => {
         }
 
         //const isNotParent = user.userRoles.find()
-
+       
         return (
             <Tab.Navigator
                 screenOptions={{
@@ -46,7 +46,7 @@ export const TabNavigator = () => {
                     tabBarInactiveTintColor: Colors.mediumGray,
                 }}
             >
-                <Tab.Screen name="Home" component={user ? AppStack : AuthStack} options={{
+                <Tab.Screen name="Home" component={AppStack} options={{
                     tabBarLabel: 'HOME',
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
