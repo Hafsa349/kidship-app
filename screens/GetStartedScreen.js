@@ -14,11 +14,14 @@ export const GetStartedScreen = ({ route, navigation }) => {
     <>
       <View isSafe style={styles.container}>
         <View style={styles.textContainer}>
+          <Logo uri={Images.logoIcon} width={210} height={210} />
           <Text style={styles.titleText}>
             Stay closer to your{'\n'}
-            child’s world with
+            child’s world with KidShip
           </Text>
-          <Logo uri={Images.logo} width={210} height={210} />
+          <Text style={styles.logoText}>
+              KidShip
+            </Text>
         </View>
         <Button
           style={styles.button}
@@ -47,6 +50,12 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 24,
     color: Colors.white,
+    fontFamily: 'psemibold',
+    textAlign: 'center',
+  },
+  logoText: {
+    fontSize: 24,
+    color: Colors.secondary200,
     fontFamily: 'psemibold',
     textAlign: 'center',
   },
