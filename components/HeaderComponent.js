@@ -1,74 +1,85 @@
 import React, { useContext } from 'react';
-import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text, SafeAreaView } from 'react-native';
 import { Logo } from './Logo';
 import { Icon } from './Icon';
 import { Images, Colors, auth } from '../config';
 import { AuthenticatedUserContext } from '../providers';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+
 
 export const HeaderComponent = ({ navigation, title, navigationTo, authUser = null }) => {
-  const { user } = useContext(AuthenticatedUserContext);
-    
+    const { user } = useContext(AuthenticatedUserContext);
+
     return (
-        <View style={styles.header}>
-            <View style={styles.headerLeft}>
-                {navigationTo ? (
-                    <TouchableOpacity style={{ paddingTop: 20, paddingBottom: 10 }} onPress={() => navigation.goBack()}>
-                        <Icon name="keyboard-backspace" size={30} color={Colors.white} />
-                    </TouchableOpacity>
-                ) : (
-                    <Logo uri={Images.logo} width={60} height={60} />
-                )}
-            </View>
-            <View style={styles.headerCenter}>
-                <Text style={styles.title}>{title}</Text>
-            </View>
-            <View style={styles.headerRight}>
-                <>
-                    {user &&
-                        <TouchableOpacity onPress={() => navigation.navigate('NotificationScreen')}>
-                            <Icon name="bell-outline" size={32} color={Colors.white} />
+        <SafeAreaView style={styles.container}>
+
+            <View style={styles.header}>
+
+                <View style={styles.headerLeft}>
+                    {navigationTo ? (
+                        <TouchableOpacity onPress={() => navigation.goBack()}>
+                            <Icon name="keyboard-backspace" size={26} color={Colors.brandBlue} />
                         </TouchableOpacity>
-                    }
-                </>
+                    ) : (
+                        <Logo uri={Images.logoIcon} width={80} height={40} />
+                    )}
+                </View>
+                <View style={styles.headerCenter}>
+                    <Text style={styles.title}>{title}</Text>
+                </View>
+                <View style={styles.headerRight}>
+                    <>
+                        {user &&
+                            <><TouchableOpacity onPress={() => navigation.navigate('NotificationScreen')}>
+                                <MaterialCommunityIcons name="medal" size={26} color="#f5b22d" />
+                            </TouchableOpacity>
+                                <TouchableOpacity onPress={() => navigation.navigate('NotificationScreen')}>
+                                    <MaterialCommunityIcons name="message-processing" size={26} color="#f5b22d" />
+                                </TouchableOpacity></>
+                        }
+                    </>
+                </View>
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingBottom: 8,
+    container: {
         backgroundColor: Colors.brandBlue,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.50,
-        shadowRadius: 4,
-        elevation: 5,
-        paddingTop: 60,
+    },
+    header: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+        gap: 3,
+        paddingHorizontal: 10,
+        height: 60,
+
+
     },
     headerLeft: {
         flex: 1,
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        alignSelf: 'center'
     },
     headerCenter: {
         flex: 2,
-        justifyContent: 'center',
-        paddingTop: 10,
+        alignSelf: 'center',
         alignItems: 'center',
     },
     headerRight: {
         flex: 1,
-        alignItems: 'flex-end',
-        paddingTop: 16,
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignSelf: 'center',
+        gap: 30,
     },
     title: {
-        fontSize: 20,
+        fontSize: 16,
         fontWeight: 'bold',
-        color: Colors.white,
+        color: Colors.brandYellow,
     },
 });
