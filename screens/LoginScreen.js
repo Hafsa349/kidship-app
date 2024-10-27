@@ -24,7 +24,7 @@ export const LoginScreen = ({ route, navigation }) => {
     } catch (error) {
       setErrorState("Invalid email or password");
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false); 
     }
   }
 
