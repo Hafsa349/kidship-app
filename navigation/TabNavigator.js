@@ -7,6 +7,8 @@ import { AuthenticatedUserContext } from '../providers';
 import { Colors, auth } from '../config';
 import { allowedEditingRoles} from '../utils/constants';
 import { Icon } from '../components';
+import Ionicons from '@expo/vector-icons/Ionicons';
+
 import { AuthStack, AppStack, MoreAppStack } from '../navigation';
 import { CalendarScreen, CreatePostScreen, HomeWorkScreen } from '../screens';
 import { fetchUserDetails } from '../services';
@@ -63,6 +65,8 @@ export const TabNavigator = () => {
                     headerShown: false,
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
+                    tabBarShowLabel: false,
+
                 }}
             >
                 <Tab.Screen name="Home" component={AppStack} options={{
@@ -70,7 +74,7 @@ export const TabNavigator = () => {
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
                     tabBarIcon: ({ focused }) => (
-                        <Icon name={focused ? "home" : "home-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
+                        <Ionicons name={focused ? "home" : "home-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
@@ -78,8 +82,18 @@ export const TabNavigator = () => {
                     tabBarLabel: 'Homework',
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
-                    tabBarIcon: ({ focused }) => (
-                        <Icon name={focused ? "book" : "book-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
+                    tabBarIcon: ({focused}) => (
+                        <Ionicons name={focused ? "book" : "book-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
+                            style={{ marginRight: 0 }} />
+                    ),
+                }} />
+                 <Tab.Screen name="Post" component={user ? CreatePostScreen : AuthStack} options={{
+                    tabBarLabel: 'Post',
+                    headerShown: false,
+                    tabBarActiveTintColor: Colors.mediumGray,
+                    tabBarInactiveTintColor: Colors.mediumGray,
+                    tabBarIcon: ({focused}) => (
+                        <Ionicons name={focused ? "add-circle" : "add-circle-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
@@ -98,22 +112,22 @@ export const TabNavigator = () => {
                     tabBarLabel: 'Calendar',
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
-                    tabBarIcon: ({ focused }) => (
-                        <Icon name={focused ? "calendar" : "calendar-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
+                    tabBarIcon: ({focused}) => (
+                        <Ionicons name={focused ? "calendar" : "calendar-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
                 <Tab.Screen name="More"
                     children={() => <MoreAppStack user={user} />}
-                    options={{
-                        tabBarLabel: 'MORE',
-                        tabBarActiveTintColor: Colors.mediumGray,
-                        tabBarInactiveTintColor: Colors.mediumGray,
-                        tabBarIcon: ({ focused }) => (
-                            <Icon name={"dots-horizontal"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
-                                style={{ marginRight: 0 }} />
-                        ),
-                    }} />
+                options={{
+                    tabBarLabel: 'MORE',
+                    tabBarActiveTintColor: Colors.mediumGray,
+                    tabBarInactiveTintColor: Colors.mediumGray,
+                    tabBarIcon: ({focused}) => (
+                        <Ionicons name={(focused ? 'person-circle' : 'person-circle-outline')} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
+                            style={{ marginRight: 0 }} />
+                    ),
+                }} />
             </Tab.Navigator>
         );
     };

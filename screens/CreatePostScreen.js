@@ -1,88 +1,111 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Image, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Text, TouchableOpacity, View, TextInput, Image, StyleSheet } from 'react-native';
 import { HeaderComponent, Button } from '../components';
+import * as ImagePicker from 'expo-image-picker';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Colors } from '../config';
-import { launchImageLibrary } from 'react-native-image-picker';
+
+
 
 export const CreatePostScreen = ({ navigation }) => {
+    const [caption, setCaption] = useState('');
     const [image, setImage] = useState(null);
-    const [description, setDescription] = useState('');
-    const [loading, setLoading] = useState(false);
 
-    const chooseImage = () => {
-        launchImageLibrary({ mediaType: 'photo' }, (response) => {
-            if (response.didCancel) {
-                console.log('User cancelled image picker');
-            } else if (response.error) {
-                console.log('ImagePicker Error: ', response.error);
-            } else if (response.assets) {
-                const source = { uri: response.assets[0].uri };
-                setImage(source);
-            }
+    const pickImage = async () => {
+        // No permissions request is necessary for launching the image library
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [5, 4],
+            quality: 1,
         });
-    };
 
-    const handleShare = () => {
-        setLoading(true); // Start loading
-        try {
-            // Handle the share logic here
-            console.log('Image: ', image);
-            console.log('Description: ', description);
-        } catch (error) {
-            setErrorState("Invalid email or password");
-        } finally {
-            setLoading(false);
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);
         }
     };
 
+    useEffect(() => {
+        if (!image) pickImage()
+    }, [image]);
+
     return (
         <>
-            <HeaderComponent title="New Post" navigation={navigation} />
+            <HeaderComponent title="Create Post" navigation={navigation} />
+            {/* Image picker */}
             <View style={styles.container}>
-                <Button title="Upload Image" onPress={chooseImage} />
-                {image && <Image source={image} style={styles.image} />}
-                <TextInput
-                    style={styles.descriptionInput}
-                    placeholder="Add a description"
-                    value={description}
-                    onChangeText={setDescription}
-                    multiline
-                />
-                <Button
-                    style={styles.button}
-                    onPress={handleShare}
-                    disabled={loading}
-                >
-                    {loading ? (
-                        <ActivityIndicator size="small" color={Colors.black} />
-                    ) : (
-                        <Text style={styles.buttonText}>{'Share'}</Text>
-                    )}
-                </Button>
+                <View style={styles.imageContainer}>
+                    <TouchableOpacity onPress={pickImage} >
+                        {image ? <Image style={styles.imageDefault} source={{ uri: image }} /> : (
+                            <View style={styles.imageDefault}>
+                                <MaterialIcons name="upload" size={34} color="gray" />
+                            </View>
+                        )}
+
+
+                        <Text style={styles.imageText}>Change Image</Text>
+                    </TouchableOpacity>
+                    {/* TextInput for caption */}
+                    <TextInput style={styles.captionInput}
+                        className="h-[92px] font-plight w-full p-3 mb-10 bg-gray-50 rounded-2xl border-[1px] border-gray-200 "
+                        placeholder="Write a caption..."
+                        multiline={true}
+                        value={caption}
+                        onChangeText={(newValeu) => setCaption(newValeu)}
+                    />
+
+                    {/* Button */}
+                    <Button style={styles.button}>
+                        <Text style={styles.buttonText}>Share</Text>
+                    </Button>
+
+
+                </View>
             </View>
+
+
+
         </>
-    );
+    )
 };
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        padding: 16,
-        backgroundColor: '#fff',
+        height: '100%',
     },
-    image: {
-        width: '100%',
-        height: 200,
-        marginVertical: 10,
-        borderRadius: 10,
-    },
-    descriptionInput: {
-        height: 100,
-        borderColor: 'gray',
-        borderWidth: 1,
-        borderRadius: 5,
+    imageContainer: {
         padding: 10,
-        marginVertical: 10,
+        alignItems: 'center',
+        width: '100%',
+    },
+    imageDefault: {
+        backgroundColor: Colors.lightGrey,
+        width: '100%',
+        aspectRatio: '5/4',
+        resizeMode: 'cover',
+        minWidth: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 10,
+
+    },
+    imageText: {
+        fontWeight: 'bold',
+        fontSize: 16,
+        textAlign: 'center',
+        margin: 10,
+        color: Colors.brandYellow,
+
+    },
+    captionInput: {
+        height: 92,
+        fontWeight: 'light',
+        width: '100%',
+        padding: 3,
+        backgroundColor: Colors.lightGrey,
+        borderRadius: 10,
+        borderWidth: 0,
+        borderColor: Colors.legalGray
     },
     button: {
         width: '100%',
@@ -99,4 +122,4 @@ const styles = StyleSheet.create({
         color: Colors.black,
         fontWeight: '700'
     },
-});
+})

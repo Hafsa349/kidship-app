@@ -21,7 +21,7 @@ export default {
       supportsTablet: true,
       bundleIdentifier: "au.com.kidship.ios"
     },
-    android:{
+    android: {
       package: "au.com.kidship.android"
     },
     extra: {
@@ -36,6 +36,9 @@ export default {
       eas: {
         projectId: "3bf459e5-1187-474c-a3c3-5198b85eccb0"
       }
-    }
+    },
+    plugins: ['expo-router', 'expo-image-picker']
+      
+
   }
 };
