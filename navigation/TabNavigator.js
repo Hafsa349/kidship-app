@@ -53,7 +53,6 @@ export const TabNavigator = () => {
         if (isLoading) {
             return null; // You might want to show a loading indicator here
         }
-        
         const allowEditing = userDetail.userRoles?.some(role => allowedEditingRoles.includes(role)) || false;
         console.log('allowEditing',allowedEditingRoles, allowEditing)
         

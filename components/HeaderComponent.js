@@ -1,13 +1,40 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { Logo } from './Logo';
 import { Icon } from './Icon';
 import { Images, Colors, auth } from '../config';
 import { AuthenticatedUserContext } from '../providers';
+import { onAuthStateChanged } from 'firebase/auth';
+import { fetchUserDetails } from '../services';
 
 export const HeaderComponent = ({ navigation, title, navigationTo, authUser = null }) => {
-  const { user } = useContext(AuthenticatedUserContext);
-    
+    const { user, setUser } = useContext(AuthenticatedUserContext);
+    const [userDetail, setUserDetail] = useState({});
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, authenticatedUser => {
+            setUser(authenticatedUser);
+        });
+
+        return () => unsubscribe();
+    }, [setUser]);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (user && user.uid) {
+                try {
+                    const userDetails = await fetchUserDetails(user.uid);
+                    setUserDetail(userDetails);
+                } catch (error) {
+                    console.error('Error fetching user details:', error);
+                }
+            }
+        };
+
+        fetchUserData();
+    }, [user]);
+
+    const isParent = userDetail.userRoles?.includes('parent');
     return (
         <View style={styles.header}>
             <View style={styles.headerLeft}>
@@ -23,13 +50,19 @@ export const HeaderComponent = ({ navigation, title, navigationTo, authUser = nu
                 <Text style={styles.title}>{title}</Text>
             </View>
             <View style={styles.headerRight}>
-                <>
-                    {user &&
+                <View style={styles.iconContainer}>
+                    <TouchableOpacity onPress={() => navigation.navigate('MessagingScreen')}>
+                        <Icon name="message-outline" size={32} color={Colors.white} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('ReportScreen')}>
+                        <Icon name="file-outline" size={32} color={Colors.white} />
+                    </TouchableOpacity>
+                    {/* {!isParent && (
                         <TouchableOpacity onPress={() => navigation.navigate('NotificationScreen')}>
                             <Icon name="bell-outline" size={32} color={Colors.white} />
                         </TouchableOpacity>
-                    }
-                </>
+                    )} */}
+                </View>
             </View>
         </View>
     );
@@ -65,6 +98,11 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'flex-end',
         paddingTop: 16,
+    },
+    iconContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16, // space between icons
     },
     title: {
         fontSize: 20,

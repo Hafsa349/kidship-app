@@ -42,6 +42,12 @@ export const HomeScreen = ({ navigation }) => {
         try {
           const userDetails = await fetchUserDetails(user.uid);
           setUserDetail(userDetails);
+          const authUser = {
+            ...authenticatedUser,
+            userDetails: userDetails
+          }
+          console.log('authUser details', authUser);
+          setUser(authUser);
         } catch (error) {
           console.error('Error fetching user details:', error);
         }

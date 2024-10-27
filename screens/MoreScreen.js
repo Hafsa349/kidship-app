@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Alert } from 'react-native';
 import { Colors } from '../config';
 import { HeaderComponent, Button } from '../components';
@@ -6,8 +6,10 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../config';
 import { onAuthStateChanged } from 'firebase/auth';
 import { AuthenticatedUserContext } from '../providers';
+import { fetchUserDetails } from '../services';
 export const MoreScreen = ({ navigation }) => {
     const { user, setUser } = useContext(AuthenticatedUserContext);
+    const [userDetail, setUserDetail] = useState({});
 
     useEffect(() => {
         // onAuthStateChanged returns an unsubscriber
@@ -21,12 +23,31 @@ export const MoreScreen = ({ navigation }) => {
         return unsubscribeAuthStateChanged;
     }, [setUser]);
 
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (user && user.uid) {
+                try {
+                    const userDetails = await fetchUserDetails(user.uid);
+                    setUserDetail(userDetails);
+                } catch (error) {
+                    console.error('Error fetching user details:', error);
+                }
+            }
+        };
+
+        fetchUserData();
+    }, [user]);
+
     let settingsList = [
         { name: user ? "My Account" : "Sign in or create an account", screen: user ? "MyAccountScreen" : "LoginScreen"},
         { name: "Terms and Conditions", screen: "TermsAndConditionScreen" },
         { name: "Privacy Policy", screen: "PrivacyPolicyScreen" },
     ];
+    const isParent = userDetail.userRoles?.includes('parent');
 
+    if(isParent){
+        settingsList.push({ name: "Notifications", screen: "NotificationScreen" })
+    }
     const handleSignOut = async () => {
         Alert.alert(
             'Confirm Sign Out',
