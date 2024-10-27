@@ -1,6 +1,2 @@
-export const UserRoles = {
-    teacher,
-    parent,
-    admin,
-    coordinator
-};
+export const allowedEditingRoles = ['teacher', 'admin'];
+export const userRoles = ['parent', 'teacher', 'admin','coordinator'];
