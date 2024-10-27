@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { Logo } from './Logo';
 import { Icon } from './Icon';
-import { Images, Colors } from '../config';
+import { Images, Colors, auth } from '../config';
+import { AuthenticatedUserContext } from '../providers';
 
-
-export const HeaderComponent = ({ navigation, title, navigationTo, user = null}) => {
+export const HeaderComponent = ({ navigation, title, navigationTo, authUser = null }) => {
+  const { user } = useContext(AuthenticatedUserContext);
+    
     return (
         <View style={styles.header}>
             <View style={styles.headerLeft}>
@@ -14,19 +16,19 @@ export const HeaderComponent = ({ navigation, title, navigationTo, user = null})
                         <Icon name="keyboard-backspace" size={30} color={Colors.white} />
                     </TouchableOpacity>
                 ) : (
-                    <TouchableOpacity onPress={() => navigation.navigate(user ? 'HomeScreen' : 'GetStartedScreen')}>
-                        <Logo uri={Images.logo} width={60} height={60} />
-                    </TouchableOpacity>
+                    <Logo uri={Images.logo} width={60} height={60} />
                 )}
             </View>
             <View style={styles.headerCenter}>
                 <Text style={styles.title}>{title}</Text>
             </View>
             <View style={styles.headerRight}>
-                 <>
-                    <TouchableOpacity onPress={() => navigation.navigate('NotificationScreen')}>
-                        <Icon name="bell-outline" size={32} color={Colors.white} />
-                    </TouchableOpacity>
+                <>
+                    {user &&
+                        <TouchableOpacity onPress={() => navigation.navigate('NotificationScreen')}>
+                            <Icon name="bell-outline" size={32} color={Colors.white} />
+                        </TouchableOpacity>
+                    }
                 </>
             </View>
         </View>

@@ -7,7 +7,7 @@ import { AuthenticatedUserContext } from '../providers';
 import { Colors, auth } from '../config';
 import { Icon } from '../components';
 import { AuthStack, AppStack, MoreAppStack } from '../navigation';
-import { CalendarScreen, CreatePostScreen, HomeWorkScreen, MoreScreen } from '../screens';
+import { CalendarScreen, CreatePostScreen, HomeScreen, HomeWorkScreen, MoreScreen } from '../screens';
 
 // Create bottom tab navigator
 const Tab = createBottomTabNavigator();
@@ -36,6 +36,8 @@ export const TabNavigator = () => {
             return null; // You might want to show a loading indicator here
         }
 
+        //const isNotParent = user.userRoles.find()
+       
         return (
             <Tab.Navigator
                 screenOptions={{
@@ -44,7 +46,7 @@ export const TabNavigator = () => {
                     tabBarInactiveTintColor: Colors.mediumGray,
                 }}
             >
-                <Tab.Screen name="Home" component={user ? AppStack : AuthStack} options={{
+                <Tab.Screen name="Home" component={AppStack} options={{
                     tabBarLabel: 'HOME',
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,

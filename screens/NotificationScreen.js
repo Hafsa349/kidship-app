@@ -6,7 +6,7 @@ export const NotificationScreen = ({ navigation }) => {
 
     return (
         <>
-                 <HeaderComponent title="Notifications" />
+                 <HeaderComponent title="Notifications"  navigation={navigation} />
                  <Text>{"NotificationScreen"}</Text>
         </>
     )
