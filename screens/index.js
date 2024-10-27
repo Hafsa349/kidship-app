@@ -12,6 +12,7 @@ import { CalendarScreen } from './CalendarScreen'
 import { CreatePostScreen } from './CreatePostScreen'
 import { NotificationScreen } from './NotificationScreen'
 import { PostDetailScreen } from './PostDetailScreen'
+import { ReportScreen } from './ReportScreen'
 
 
 export {
@@ -28,5 +29,6 @@ export {
     CalendarScreen,
     CreatePostScreen,
     NotificationScreen,
-    PostDetailScreen
+    PostDetailScreen,
+    ReportScreen
 };

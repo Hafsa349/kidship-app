@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
+import { HeaderComponent } from '../components';
 
 export const ReportScreen = ({ navigation }) => {
 
