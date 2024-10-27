@@ -235,15 +235,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 8,
-        backgroundColor: Colors.brandBlue,
-        padding: 10,
-        borderRadius: 8
-    },
-    buttonText: {
-        fontSize: 20,
-        color: Colors.white,
+        backgroundColor: Colors.brandYellow,
+        padding: 16,
+        borderRadius: 8,
+        flexDirection: 'row' // Align content horizontally
+      },
+      buttonText: {
+        fontSize: 14,
+        color: Colors.black,
         fontWeight: '700'
-    },
+      },
     borderlessButtonContainer: {
         marginTop: 16,
         alignItems: 'center',

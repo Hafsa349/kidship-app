@@ -14,7 +14,7 @@ export const HeaderComponent = ({ navigation, title, navigationTo, user = null})
                         <Icon name="keyboard-backspace" size={30} color={Colors.white} />
                     </TouchableOpacity>
                 ) : (
-                    <TouchableOpacity onPress={() => navigation.navigate('HomeScreen')}>
+                    <TouchableOpacity onPress={() => navigation.navigate(user ? 'HomeScreen' : 'GetStartedScreen')}>
                         <Logo uri={Images.logo} width={60} height={60} />
                     </TouchableOpacity>
                 )}
@@ -24,7 +24,7 @@ export const HeaderComponent = ({ navigation, title, navigationTo, user = null})
             </View>
             <View style={styles.headerRight}>
                  <>
-                    <TouchableOpacity onPress={() => navigation.navigate('CartScreen')}>
+                    <TouchableOpacity onPress={() => navigation.navigate('NotificationScreen')}>
                         <Icon name="bell-outline" size={32} color={Colors.white} />
                     </TouchableOpacity>
                 </>

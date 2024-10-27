@@ -7,6 +7,7 @@ export const Colors = {
   white: '#ffffff',
   mediumGray: '#6e6869',
   yellow: '#ffcb2b',
+  brandYellow: '#f3cd1f',
   red:'#FF0000',
   brandBlue: '#00367d',
   brightYellow: '#FFCC00',
