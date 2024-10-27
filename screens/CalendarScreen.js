@@ -60,7 +60,7 @@ export const CalendarScreen = ({ navigation }) => {
 
     return (
         <>
-            <HeaderComponent title="Events" />
+            <HeaderComponent title="Events"  navigation={navigation}/>
             <View style={styles.container}>
                 <Calendar
                     onDayPress={(day) => setSelectedDate(day.dateString)}

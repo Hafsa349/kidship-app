@@ -7,7 +7,7 @@ import { AuthenticatedUserContext } from '../providers';
 import { Colors, auth } from '../config';
 import { Icon } from '../components';
 import { AuthStack, AppStack, MoreAppStack } from '../navigation';
-import { CalendarScreen, CreatePostScreen, HomeWorkScreen, MoreScreen } from '../screens';
+import { CalendarScreen, CreatePostScreen, HomeScreen, HomeWorkScreen, MoreScreen } from '../screens';
 
 // Create bottom tab navigator
 const Tab = createBottomTabNavigator();
@@ -35,6 +35,8 @@ export const TabNavigator = () => {
         if (isLoading) {
             return null; // You might want to show a loading indicator here
         }
+
+        //const isNotParent = user.userRoles.find()
 
         return (
             <Tab.Navigator

@@ -6,7 +6,7 @@ export const CreatePostScreen = ({ navigation }) => {
 
     return (
         <>
-                 <HeaderComponent title="New Post" />
+                 <HeaderComponent title="New Post" navigation={navigation} />
                  <Text>{"Post"}</Text>
         </>
     )
