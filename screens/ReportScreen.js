@@ -5,7 +5,8 @@ export const ReportScreen = ({ navigation }) => {
 
     return (
         <>
-                 <Text>{"ReportScreen"}</Text>
+            <HeaderComponent title="Reports" navigation={navigation} navigationTo="back" />
+            <Text>{"Reports"}</Text>
         </>
     )
 };
