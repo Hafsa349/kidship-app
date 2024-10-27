@@ -17,7 +17,7 @@ export const GetStartedScreen = ({ route, navigation }) => {
           <Logo uri={Images.logoIcon} width={210} height={210} />
           <Text style={styles.titleText}>
             Stay closer to your{'\n'}
-            child’s world with KidShip
+            child’s world with
           </Text>
           <Text style={styles.logoText}>
               KidShip
@@ -55,9 +55,10 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: 24,
-    color: Colors.secondary200,
+    color: Colors.brandYellow,
     fontFamily: 'psemibold',
     textAlign: 'center',
+    fontSize: 30
   },
   subtitleText: {
     fontSize: 32,
