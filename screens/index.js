@@ -6,6 +6,12 @@ import { MyAccountScreen } from './MyAccountScreen';
 import { MoreScreen } from './MoreScreen';
 import { PrivacyPolicyScreen } from './PrivacyPolicyScreen';
 import { TermsAndConditionScreen } from './TermsAndConditionScreen';
+import { GetStartedScreen } from './GetStartedScreen'
+import { HomeWorkScreen } from './HomeWorkScreen'
+import { CalendarScreen } from './CalendarScreen'
+import { CreatePostScreen } from './CreatePostScreen'
+import { NotificationScreen } from './NotificationScreen'
+
 
 export {
     LoginScreen,
@@ -16,4 +22,9 @@ export {
     MoreScreen,
     PrivacyPolicyScreen,
     TermsAndConditionScreen,
+    GetStartedScreen,
+    HomeWorkScreen,
+    CalendarScreen,
+    CreatePostScreen,
+    NotificationScreen
 };

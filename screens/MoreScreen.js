@@ -27,11 +27,6 @@ export const MoreScreen = ({ navigation }) => {
         { name: "Privacy Policy", screen: "PrivacyPolicyScreen" },
     ];
 
-    if(user){
-        settingsList.push({ name: "My Orders", screen: "OrderHistoryScreen" });
-    }
-
-
     const handleSignOut = async () => {
         Alert.alert(
             'Confirm Sign Out',
@@ -103,15 +98,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 8,
-        backgroundColor: Colors.brandBlue,
-        padding: 10,
-        borderRadius: 8
-    },
-    buttonText: {
-        fontSize: 20,
+        backgroundColor: Colors.brandYellow,
+        padding: 16,
+        borderRadius: 8,
+        flexDirection: 'row' // Align content horizontally
+      },
+      buttonText: {
+        fontSize: 14,
         color: Colors.black,
         fontWeight: '700'
-    },
+      },
     settingItemContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',

@@ -7,7 +7,7 @@ import { AuthenticatedUserContext } from '../providers';
 import { Colors, auth } from '../config';
 import { Icon } from '../components';
 import { AuthStack, AppStack, MoreAppStack } from '../navigation';
-import { MoreScreen } from '../screens';
+import { CalendarScreen, CreatePostScreen, HomeWorkScreen, MoreScreen } from '../screens';
 
 // Create bottom tab navigator
 const Tab = createBottomTabNavigator();
@@ -44,7 +44,7 @@ export const TabNavigator = () => {
                     tabBarInactiveTintColor: Colors.mediumGray,
                 }}
             >
-                <Tab.Screen name="Home" component={AppStack} options={{
+                <Tab.Screen name="Home" component={user ? AppStack : AuthStack} options={{
                     tabBarLabel: 'HOME',
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
@@ -53,12 +53,30 @@ export const TabNavigator = () => {
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
-                <Tab.Screen name="Parents" component={user ? AppStack : AuthStack} options={{
-                    tabBarLabel: 'PARENTS',
+                <Tab.Screen name="Homework" component={user ? HomeWorkScreen : AuthStack} options={{
+                    tabBarLabel: 'Homework',
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
                     tabBarIcon: ({focused}) => (
-                        <Icon name={focused ? "wallet" : "wallet-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
+                        <Icon name={focused ? "book" : "book-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
+                            style={{ marginRight: 0 }} />
+                    ),
+                }} />
+                 <Tab.Screen name="Post" component={user ? CreatePostScreen : AuthStack} options={{
+                    tabBarLabel: 'Post',
+                    tabBarActiveTintColor: Colors.mediumGray,
+                    tabBarInactiveTintColor: Colors.mediumGray,
+                    tabBarIcon: ({focused}) => (
+                        <Icon name={focused ? "plus-circle" : "plus-circle-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
+                            style={{ marginRight: 0 }} />
+                    ),
+                }} />
+                <Tab.Screen name="Calendar" component={user ? CalendarScreen : AuthStack} options={{
+                    tabBarLabel: 'Calendar',
+                    tabBarActiveTintColor: Colors.mediumGray,
+                    tabBarInactiveTintColor: Colors.mediumGray,
+                    tabBarIcon: ({focused}) => (
+                        <Icon name={focused ? "calendar" : "calendar-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
