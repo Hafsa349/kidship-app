@@ -52,6 +52,7 @@ export const HomeScreen = ({ navigation }) => {
   }, [user]);
 
   const renderPost = ({ item }) => (
+    
     <View style={styles.postCard}>
       <View style={styles.postHeader}>
         <Image
@@ -88,8 +89,8 @@ export const HomeScreen = ({ navigation }) => {
 
   return (
     <>
-      <HeaderComponent navigation={navigation} />
-      <View style={styles.container}>
+        <HeaderComponent title="KidShip" navigation={navigation} />
+        <View style={styles.container}>
       <FlatList
         data={posts}
         renderItem={renderPost}

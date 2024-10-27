@@ -78,8 +78,8 @@ const styles = StyleSheet.create({
         gap: 30,
     },
     title: {
-        fontSize: 16,
-        fontWeight: 'bold',
+        fontSize: 20,
+        fontWeight: 'regular',
         color: Colors.brandYellow,
     },
 });
