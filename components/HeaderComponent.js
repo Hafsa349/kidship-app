@@ -33,7 +33,7 @@ export const HeaderComponent = ({ navigation, title, navigationTo, authUser = nu
                             <><TouchableOpacity onPress={() => navigation.navigate('ReportScreen')}>
                                 <MaterialCommunityIcons name="medal" size={26} color="#f5b22d" />
                             </TouchableOpacity>
-                                <TouchableOpacity onPress={() => navigation.navigate('NotificationScreen')}>
+                                <TouchableOpacity onPress={() => navigation.navigate('ConversationScreen')}>
                                     <MaterialCommunityIcons name="message-processing" size={26} color="#f5b22d" />
                                 </TouchableOpacity></>
                         }

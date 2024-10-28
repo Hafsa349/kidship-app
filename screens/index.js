@@ -13,6 +13,8 @@ import { CreatePostScreen } from './CreatePostScreen'
 import { NotificationScreen } from './NotificationScreen'
 import { PostDetailScreen } from './PostDetailScreen'
 import { ReportScreen } from './ReportScreen'
+import { ConversationScreen } from './ConversationScreen'
+import { MessageDetailScreen } from './MessageDetailScreen'
 
 
 export {
@@ -30,5 +32,7 @@ export {
     CreatePostScreen,
     NotificationScreen,
     PostDetailScreen,
-    ReportScreen
+    ReportScreen,
+    ConversationScreen,
+    MessageDetailScreen
 };
