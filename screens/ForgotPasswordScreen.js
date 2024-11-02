@@ -5,7 +5,7 @@ import { sendPasswordResetEmail } from 'firebase/auth';
 
 import { passwordResetSchema } from '../utils';
 import { Colors, auth, Images } from '../config';
-import { View, TextInput, Button, FormErrorMessage , HeaderComponent} from '../components';
+import { View, TextInput, Button, FormErrorMessage, HeaderComponent } from '../components';
 import { Logo } from '../components/Logo';
 
 
@@ -25,61 +25,61 @@ export const ForgotPasswordScreen = ({ navigation }) => {
 
   return (
     <>
-    {/* <HeaderComponent navigationTo={"Login"} navigation={navigation} title={"Reset your password"} /> */}
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-    <View style={styles.container}>
-                        <View style={styles.topContainer}>
-                            <Logo uri={Images.logoLong} width={220} height={87} />
-                        </View>
-                        <View style={styles.innerContainer}>
-                            <Text style={styles.screenTitle}>Forgot your password?</Text>
-                        </View>
-      <Formik
-        initialValues={{ email: '' }}
-        validationSchema={passwordResetSchema}
-        onSubmit={values => handleSendPasswordResetEmail(values)}
-      >
-        {({
-          values,
-          touched,
-          errors,
-          handleChange,
-          handleSubmit,
-          handleBlur
-        }) => (
-          <>
-            {/* Email input field */}
-            <TextInput
-              name='email'
-              leftIconName='email'
-              placeholder='Enter email'
-              autoCapitalize='none'
-              keyboardType='email-address'
-              textContentType='emailAddress'
-              value={values.email}
-              onChangeText={handleChange('email')}
-              onBlur={handleBlur('email')}
-            />
-            <FormErrorMessage error={errors.email} visible={touched.email} />
-            {/* Display Screen Error Mesages */}
-            {errorState !== '' ? (
-              <FormErrorMessage error={errorState} visible={true} />
-            ) : null}
-            {/* Password Reset Send Email  button */}
-            <Button style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>Send Reset Email</Text>
-            </Button>
-          </>
-        )}
-      </Formik>
-      <Button
-                                        style={styles.borderlessButtonContainer}
-                                        borderless
-                                        title={'Remember your password?'}
-                                        onPress={() => navigation.navigate('LoginScreen')}
-                                    />
-    </View>
-    </SafeAreaView>
+      {/* <HeaderComponent navigationTo={"Login"} navigation={navigation} title={"Reset your password"} /> */}
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+        <View style={styles.container}>
+          <View style={styles.topContainer}>
+            <Logo uri={Images.logoLong} width={220} height={87} />
+          </View>
+          <View style={styles.innerContainer}>
+            <Text style={styles.screenTitle}>Forgot your password?</Text>
+          </View>
+          <Formik
+            initialValues={{ email: '' }}
+            validationSchema={passwordResetSchema}
+            onSubmit={values => handleSendPasswordResetEmail(values)}
+          >
+            {({
+              values,
+              touched,
+              errors,
+              handleChange,
+              handleSubmit,
+              handleBlur
+            }) => (
+              <>
+                {/* Email input field */}
+                <TextInput
+                  name='email'
+                  leftIconName='email'
+                  placeholder='Enter email'
+                  autoCapitalize='none'
+                  keyboardType='email-address'
+                  textContentType='emailAddress'
+                  value={values.email}
+                  onChangeText={handleChange('email')}
+                  onBlur={handleBlur('email')}
+                />
+                <FormErrorMessage error={errors.email} visible={touched.email} />
+                {/* Display Screen Error Mesages */}
+                {errorState !== '' ? (
+                  <FormErrorMessage error={errorState} visible={true} />
+                ) : null}
+                {/* Password Reset Send Email  button */}
+                <Button style={styles.button} onPress={handleSubmit}>
+                  <Text style={styles.buttonText}>Send Reset Email</Text>
+                </Button>
+              </>
+            )}
+          </Formik>
+          <Button
+            style={styles.borderlessButtonContainer}
+            borderless
+            title={'Remember your password?'}
+            onPress={() => navigation.navigate('LoginScreen')}
+          />
+        </View>
+      </SafeAreaView>
     </>
   );
 };
@@ -89,14 +89,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.white,
     marginHorizontal: 20,
-},
-topContainer: {
+  },
+  topContainer: {
     alignItems: 'flex-start',
-},
-innerContainer: {
+  },
+  innerContainer: {
     alignItems: 'flex-start',
     paddingBottom: 20
-},
+  },
   screenTitle: {
     fontSize: 32,
     fontWeight: '700',
@@ -112,12 +112,12 @@ innerContainer: {
     padding: 16,
     borderRadius: 8,
     flexDirection: 'row' // Align content horizontally
-},
-buttonText: {
+  },
+  buttonText: {
     fontSize: 18,
     color: Colors.brandBlue,
     fontWeight: '700'
-},
+  },
   borderlessButtonContainer: {
     marginTop: 16,
     alignItems: 'center',
