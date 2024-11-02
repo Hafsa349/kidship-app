@@ -31,7 +31,7 @@ export const CreatePostScreen = ({ navigation }) => {
 
     return (
         <>
-            <HeaderComponent title="Create Post" navigation={navigation} />
+            {/* <HeaderComponent title="Create Post" navigation={navigation} /> */}
             {/* Image picker */}
             <View style={styles.container}>
                 <View style={styles.imageContainer}>
@@ -118,8 +118,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row' // Align content horizontally
     },
     buttonText: {
-        fontSize: 14,
-        color: Colors.black,
+        fontSize: 18,
+        color: Colors.brandBlue,
         fontWeight: '700'
     },
 })

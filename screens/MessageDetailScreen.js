@@ -7,6 +7,7 @@ export const MessageDetailScreen = ({ route, navigation }) => {
     const [messages, setMessages] = useState([
         { id: '1', text: 'Hi!', sender: 'other' },
         { id: '2', text: 'Hello!', sender: 'me' },
+        { id: '3', text: 'Can I call you?', sender: 'other'}
         // Initial messages
     ]);
     const [newMessage, setNewMessage] = useState('');
@@ -36,7 +37,8 @@ export const MessageDetailScreen = ({ route, navigation }) => {
 
     return (
         <>
-            <HeaderComponent title={contactName} navigation={navigation} navigationTo="back" />
+        
+            {/* <HeaderComponent title={contactName} navigation={navigation} navigationTo="back" /> */}
             <View style={{ flex: 1, padding: 16 }}>
                 <FlatList
                     data={messages}

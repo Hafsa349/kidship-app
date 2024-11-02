@@ -29,7 +29,7 @@ export const MoreScreen = ({ navigation }) => {
 
     const handleSignOut = async () => {
         Alert.alert(
-            'Confirm Sign Out',
+            'Sign Out',
             'Are you sure you want to sign out?',
             [
                 {
@@ -57,7 +57,7 @@ export const MoreScreen = ({ navigation }) => {
 
     return (
         <>
-            <HeaderComponent navigation={navigation} />
+            {/* <HeaderComponent navigation={navigation} /> */}
             <View style={styles.container}>
                 <ScrollView contentContainerStyle={styles.scrollContent}>
                     {settingsList.map((setting, index) => (
@@ -104,8 +104,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row' // Align content horizontally
       },
       buttonText: {
-        fontSize: 14,
-        color: Colors.black,
+        fontSize: 18,
+        color: Colors.brandBlue,
         fontWeight: '700'
       },
     settingItemContainer: {

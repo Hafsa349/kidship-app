@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, SafeAreaView } from 'react-native';
 import { Formik } from 'formik';
 import { sendPasswordResetEmail } from 'firebase/auth';
 
 import { passwordResetSchema } from '../utils';
-import { Colors, auth } from '../config';
+import { Colors, auth, Images } from '../config';
 import { View, TextInput, Button, FormErrorMessage , HeaderComponent} from '../components';
+import { Logo } from '../components/Logo';
+
 
 export const ForgotPasswordScreen = ({ navigation }) => {
   const [errorState, setErrorState] = useState('');
@@ -23,8 +25,15 @@ export const ForgotPasswordScreen = ({ navigation }) => {
 
   return (
     <>
-    <HeaderComponent navigationTo={"Login"} navigation={navigation} title={"Reset your password"} />
-    <View isSafe style={styles.container}>
+    {/* <HeaderComponent navigationTo={"Login"} navigation={navigation} title={"Reset your password"} /> */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+    <View style={styles.container}>
+                        <View style={styles.topContainer}>
+                            <Logo uri={Images.logoLong} width={220} height={87} />
+                        </View>
+                        <View style={styles.innerContainer}>
+                            <Text style={styles.screenTitle}>Forgot your password?</Text>
+                        </View>
       <Formik
         initialValues={{ email: '' }}
         validationSchema={passwordResetSchema}
@@ -58,12 +67,19 @@ export const ForgotPasswordScreen = ({ navigation }) => {
             ) : null}
             {/* Password Reset Send Email  button */}
             <Button style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>Send reset email</Text>
+              <Text style={styles.buttonText}>Send Reset Email</Text>
             </Button>
           </>
         )}
       </Formik>
+      <Button
+                                        style={styles.borderlessButtonContainer}
+                                        borderless
+                                        title={'Remember your password?'}
+                                        onPress={() => navigation.navigate('LoginScreen')}
+                                    />
     </View>
+    </SafeAreaView>
     </>
   );
 };
@@ -72,12 +88,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
-    paddingHorizontal: 12,
-    zIndex: -1
-  },
-  innercontainer: {
-    alignItems: 'center'
-  },
+    marginHorizontal: 20,
+},
+topContainer: {
+    alignItems: 'flex-start',
+},
+innerContainer: {
+    alignItems: 'flex-start',
+    paddingBottom: 20
+},
   screenTitle: {
     fontSize: 32,
     fontWeight: '700',
@@ -93,12 +112,12 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     flexDirection: 'row' // Align content horizontally
-  },
-  buttonText: {
-    fontSize: 14,
-    color: Colors.black,
+},
+buttonText: {
+    fontSize: 18,
+    color: Colors.brandBlue,
     fontWeight: '700'
-  },
+},
   borderlessButtonContainer: {
     marginTop: 16,
     alignItems: 'center',

@@ -4,9 +4,11 @@ import { Formik } from 'formik';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { View, TextInput, Button, FormErrorMessage, HeaderComponent } from '../components';
-import { Colors, auth } from '../config';
+import { Colors, Images, auth } from '../config';
 import { useTogglePasswordVisibility } from '../hooks';
 import { loginValidationSchema } from '../utils';
+import { Logo } from '../components/Logo';
+
 
 export const LoginScreen = ({ route, navigation }) => {
   const [errorState, setErrorState] = useState('');
@@ -24,17 +26,20 @@ export const LoginScreen = ({ route, navigation }) => {
     } catch (error) {
       setErrorState("Invalid email or password");
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   }
 
   return (
     <>
-      <HeaderComponent navigation={navigation} title="" />
+      {/* <HeaderComponent navigation={navigation} title="" /> */}
       <View isSafe style={styles.container}>
         <KeyboardAwareScrollView enableOnAndroid={true}>
+          <View style={styles.topContainer}>
+          <Logo uri={Images.logoLong} width={220} height={87} />
+          </View>
           <View style={styles.innerContainer}>
-            <Text style={styles.screenTitle}>Welcome back!</Text>
+            <Text style={styles.screenTitle}>Log in to KidShip</Text>
           </View>
           <Formik
             initialValues={{
@@ -100,17 +105,18 @@ export const LoginScreen = ({ route, navigation }) => {
           <Button
             style={styles.borderlessButtonContainer}
             borderless
-            title={'Create a new account?'}
-            onPress={() => navigation.navigate('SignupScreen')}
+            title={'Forgot Password?'}
+            onPress={() => navigation.navigate('ForgotPasswordScreen')}
             disabled={loading} // Disable during loading
           />
           <Button
             style={styles.borderlessButtonContainer}
             borderless
-            title={'Forgot Password'}
-            onPress={() => navigation.navigate('ForgotPasswordScreen')}
+            title={'Do not have account?'}
+            onPress={() => navigation.navigate('SignupScreen')}
             disabled={loading} // Disable during loading
           />
+
         </KeyboardAwareScrollView>
       </View>
     </>
@@ -121,17 +127,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     zIndex: -1,
-    backgroundColor: Colors.white,
-    padding: 20
+    backgroundColor: Colors.brandBlue,
+    paddingHorizontal: 20
+  },
+  topContainer: {
+    alignItems: 'flex-start',
+    paddingVertical: 40
   },
   innerContainer: {
-    alignItems: 'center'
+    alignItems: 'flex-start',
+    paddingBottom: 20
   },
   screenTitle: {
     fontSize: 32,
     fontWeight: '700',
-    color: Colors.black,
-    paddingTop: 20
+    color: Colors.white,
+    paddingTop: 0
   },
   button: {
     width: '100%',
@@ -144,14 +155,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row' // Align content horizontally
   },
   buttonText: {
-    fontSize: 14,
-    color: Colors.black,
+    fontSize: 18,
+    color: Colors.brandBlue,
     fontWeight: '700'
   },
   borderlessButtonContainer: {
     marginTop: 16,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    paddingBottom: 10,
   }
 });
 

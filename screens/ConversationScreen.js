@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, FlatList, Text, TouchableOpacity } from 'react-native';
+import { View, FlatList, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import { HeaderComponent } from '../components';
 
 const conversations = [
@@ -20,13 +20,15 @@ export const ConversationScreen = ({ navigation }) => {
     );
 
     return (
+        <SafeAreaView style={{flex: 1}}>
         <View style={{ flex: 1 }}>
-            <HeaderComponent title="Messages" navigation={navigation} navigationTo="back" />
+            {/* <HeaderComponent title="Messages" navigation={navigation} navigationTo="back" /> */}
             <FlatList
                 data={conversations}
                 keyExtractor={(item) => item.id}
                 renderItem={renderConversationItem}
             />
         </View>
+        </SafeAreaView>
     );
 };

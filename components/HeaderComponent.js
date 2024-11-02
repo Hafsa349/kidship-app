@@ -5,6 +5,8 @@ import { Icon } from './Icon';
 import { Images, Colors, auth } from '../config';
 import { AuthenticatedUserContext } from '../providers';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import AntDesign from '@expo/vector-icons/AntDesign';
+
 
 
 export const HeaderComponent = ({ navigation, title, navigationTo, authUser = null }) => {
@@ -21,7 +23,7 @@ export const HeaderComponent = ({ navigation, title, navigationTo, authUser = nu
                             <Icon name="keyboard-backspace" size={26} color={Colors.white} />
                         </TouchableOpacity>
                     ) : (
-                        <Logo uri={Images.logoIcon} width={80} height={40} />
+                        <Logo uri={Images.logoLong} width={120} height={40} />
                     )}
                 </View>
                 <View style={styles.headerCenter}>
@@ -31,10 +33,10 @@ export const HeaderComponent = ({ navigation, title, navigationTo, authUser = nu
                     <>
                         {user &&
                             <><TouchableOpacity onPress={() => navigation.navigate('ReportScreen')}>
-                                <MaterialCommunityIcons name="medal" size={26} color="#f5b22d" />
+                                <AntDesign name='smileo' size={30} color='#f5b22d' />
                             </TouchableOpacity>
                                 <TouchableOpacity onPress={() => navigation.navigate('ConversationScreen')}>
-                                    <MaterialCommunityIcons name="message-processing" size={26} color="#f5b22d" />
+                                <AntDesign name='message1' size={30} color='#f5b22d' />
                                 </TouchableOpacity></>
                         }
                     </>
@@ -46,7 +48,7 @@ export const HeaderComponent = ({ navigation, title, navigationTo, authUser = nu
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: Colors.brandBlue,
+        backgroundColor: Colors.white,
     },
     header: {
         display: 'flex',

@@ -1,28 +1,31 @@
 // AppStack.js
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { HomeScreen,
+import {
+  HomeScreen,
   MyAccountScreen, MoreScreen,
   LoginScreen, SignupScreen, ForgotPasswordScreen, CreatePostScreen, CalendarScreen, HomeWorkScreen,
-  NotificationScreen, PostDetailScreen, ReportScreen, 
+  NotificationScreen, PostDetailScreen, ReportScreen,
   MessageDetailScreen,
-  ConversationScreen} from '../screens';
+  ConversationScreen
+} from '../screens';
+import { Colors } from '../config';
 
 const { Navigator, Screen } = createStackNavigator();
 
 export const AppStack = () => {
   return (
-    <Navigator screenOptions={{ headerShown: false }}>
-      <Screen component={HomeScreen} name="HomeScreen" />
+    <Navigator screenOptions={{ headerShown: true, headerTintColor: Colors.brandYellow }}>
+      <Screen component={HomeScreen} name="HomeScreen" options={{ headerShown: false, headerTitle: 'Home' }} />
       <Screen component={NotificationScreen} name="NotificationScreen" />
       <Screen component={MyAccountScreen} name="MyAccountScreen" />
       <Screen component={HomeWorkScreen} name="HomeWorkScreen" />
-      <Screen component={ConversationScreen} name="ConversationScreen" />
-      <Screen component={MessageDetailScreen} name="MessageDetailScreen" />
+      <Screen component={ConversationScreen} name="ConversationScreen" options={{ headerTitle: 'Messages' }} />
+      <Screen component={MessageDetailScreen} name="MessageDetailScreen" options={({ route }) => ({ title: route.params.contactName })} />
       <Screen component={CalendarScreen} name="CalendarScreen" />
       <Screen component={CreatePostScreen} name="CreatePostScreen" />
       <Screen component={PostDetailScreen} name="PostDetailScreen" />
-      <Screen component={ReportScreen} name="ReportScreen" />
+      <Screen component={ReportScreen} name="ReportScreen" options={{ headerTitle: 'Child Progress' }}/>
       <Screen component={MoreScreen} name="MoreScreen" />
       <Screen component={LoginScreen} name="LoginScreen" />
       <Screen component={SignupScreen} name="SignupScreen" />

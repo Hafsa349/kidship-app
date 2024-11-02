@@ -48,20 +48,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   titleText: {
-    fontSize: 24,
+    fontSize: 28,
     color: Colors.white,
     fontFamily: 'psemibold',
     textAlign: 'center',
   },
   logoText: {
-    fontSize: 24,
     color: Colors.brandYellow,
     fontFamily: 'psemibold',
     textAlign: 'center',
-    fontSize: 30
+    fontSize: 36
   },
   subtitleText: {
-    fontSize: 32,
+    fontSize: 30,
     color: Colors.secondary200,
     fontFamily: 'pregular',
     textAlign: 'center',
@@ -78,8 +77,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row' // Align content horizontally
   },
   buttonText: {
-    fontSize: 14,
-    color: Colors.black,
+    fontSize: 18,
+    color: Colors.brandBlue,
     fontWeight: '700'
   },
 });

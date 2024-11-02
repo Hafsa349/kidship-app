@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 
 import { AuthenticatedUserContext } from '../providers';
 import { Colors, auth } from '../config';
-import { allowedEditingRoles} from '../utils/constants';
+import { allowedEditingRoles } from '../utils/constants';
 import { Icon } from '../components';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
@@ -36,18 +36,18 @@ export const TabNavigator = () => {
 
     useEffect(() => {
         const fetchUserData = async () => {
-          if (user && user.uid) {
-            try {
-              const userDetails = await fetchUserDetails(user.uid);
-              setUserDetail(userDetails);
-            } catch (error) {
-              console.error('Error fetching user details:', error);
+            if (user && user.uid) {
+                try {
+                    const userDetails = await fetchUserDetails(user.uid);
+                    setUserDetail(userDetails);
+                } catch (error) {
+                    console.error('Error fetching user details:', error);
+                }
             }
-          }
         };
-    
+
         fetchUserData();
-      }, [user]);
+    }, [user]);
 
     // Decide which stack to show based on user authentication status
     const getTabScreen = () => {
@@ -55,14 +55,15 @@ export const TabNavigator = () => {
         if (isLoading) {
             return null; // You might want to show a loading indicator here
         }
-        
+
         const allowEditing = userDetail.userRoles?.some(role => allowedEditingRoles.includes(role)) || false;
-        console.log('allowEditing',allowedEditingRoles, allowEditing)
-        
+        console.log('allowEditing', allowedEditingRoles, allowEditing)
+
         return (
             <Tab.Navigator
                 screenOptions={{
-                    headerShown: false,
+                    headerShown: true,
+                    headerTintColor: Colors.brandYellow,
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
                     tabBarShowLabel: false,
@@ -70,11 +71,12 @@ export const TabNavigator = () => {
                 }}
             >
                 <Tab.Screen name="Home" component={AppStack} options={{
-                    tabBarLabel: 'HOME',
+                    headerShown: false,
+                    tabBarLabel: 'Home',
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
                     tabBarIcon: ({ focused }) => (
-                        <Ionicons name={focused ? "home" : "home-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
+                        <Ionicons name={focused ? "home" : "home-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
@@ -82,18 +84,18 @@ export const TabNavigator = () => {
                     tabBarLabel: 'Homework',
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
-                    tabBarIcon: ({focused}) => (
-                        <Ionicons name={focused ? "book" : "book-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
+                    tabBarIcon: ({ focused }) => (
+                        <Ionicons name={focused ? "book" : "book-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
-                 <Tab.Screen name="Post" component={user ? CreatePostScreen : AuthStack} options={{
+                <Tab.Screen name="Post" component={user ? CreatePostScreen : AuthStack} options={{
+                    title: 'Create Post',
                     tabBarLabel: 'Post',
-                    headerShown: false,
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
-                    tabBarIcon: ({focused}) => (
-                        <Ionicons name={focused ? "add-circle" : "add-circle-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
+                    tabBarIcon: ({ focused }) => (
+                        <Ionicons name={focused ? "add-circle" : "add-circle-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
@@ -112,22 +114,22 @@ export const TabNavigator = () => {
                     tabBarLabel: 'Calendar',
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
-                    tabBarIcon: ({focused}) => (
-                        <Ionicons name={focused ? "calendar" : "calendar-outline"} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
+                    tabBarIcon: ({ focused }) => (
+                        <Ionicons name={focused ? "calendar" : "calendar-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
-                <Tab.Screen name="More"
+                <Tab.Screen name="Profile"
                     children={() => <MoreAppStack user={user} />}
-                options={{
-                    tabBarLabel: 'MORE',
-                    tabBarActiveTintColor: Colors.mediumGray,
-                    tabBarInactiveTintColor: Colors.mediumGray,
-                    tabBarIcon: ({focused}) => (
-                        <Ionicons name={(focused ? 'person-circle' : 'person-circle-outline')} color={focused ? Colors.brandBlue :  Colors.mediumGray} size={28}
-                            style={{ marginRight: 0 }} />
-                    ),
-                }} />
+                    options={{
+                        tabBarLabel: 'Profile',
+                        tabBarActiveTintColor: Colors.mediumGray,
+                        tabBarInactiveTintColor: Colors.mediumGray,
+                        tabBarIcon: ({ focused }) => (
+                            <Ionicons name={(focused ? 'person-circle' : 'person-circle-outline')} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
+                                style={{ marginRight: 0 }} />
+                        ),
+                    }} />
             </Tab.Navigator>
         );
     };

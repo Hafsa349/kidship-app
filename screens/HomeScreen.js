@@ -119,7 +119,7 @@ export const HomeScreen = ({ navigation }) => {
 
   return (
     <>
-      <HeaderComponent title="KidShip" navigation={navigation} />
+      <HeaderComponent title="" navigation={navigation} />
       <FlatList
         data={posts}
         renderItem={renderPost}
