@@ -37,7 +37,6 @@ export const HomeWorkScreen = ({ navigation }) => {
 
     return (
         <>
-            {/* <HeaderComponent title="Homework" /> */}
             <View style={styles.filterContainer}>
                 <Text style={styles.label}>Select Class</Text>
                 <View style={styles.pickerContainer}>

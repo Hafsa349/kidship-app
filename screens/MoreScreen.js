@@ -57,7 +57,6 @@ export const MoreScreen = ({ navigation }) => {
 
     return (
         <>
-            {/* <HeaderComponent navigation={navigation} /> */}
             <View style={styles.container}>
                 <ScrollView contentContainerStyle={styles.scrollContent}>
                     {settingsList.map((setting, index) => (

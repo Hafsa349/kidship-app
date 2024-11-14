@@ -25,7 +25,6 @@ export const ForgotPasswordScreen = ({ navigation }) => {
 
   return (
     <>
-      {/* <HeaderComponent navigationTo={"Login"} navigation={navigation} title={"Reset your password"} /> */}
       <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
         <View style={styles.container}>
           <View style={styles.topContainer}>

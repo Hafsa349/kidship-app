@@ -32,7 +32,6 @@ export const LoginScreen = ({ route, navigation }) => {
 
   return (
     <>
-      {/* <HeaderComponent navigation={navigation} title="" /> */}
       <View isSafe style={styles.container}>
         <KeyboardAwareScrollView enableOnAndroid={true}>
           <View style={styles.topContainer}>

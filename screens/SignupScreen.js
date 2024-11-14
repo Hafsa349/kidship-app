@@ -87,7 +87,6 @@ export const SignupScreen = ({ navigation }) => {
 
     return (
         <>
-            {/* <HeaderComponent navigationTo={"LoginScreen"} navigation={navigation} title={"Create Account"} /> */}
             <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
                 <View style={styles.container}>
                     <KeyboardAwareScrollView enableOnAndroid={true}>

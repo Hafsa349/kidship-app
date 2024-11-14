@@ -38,7 +38,6 @@ export const MessageDetailScreen = ({ route, navigation }) => {
     return (
         <>
         
-            {/* <HeaderComponent title={contactName} navigation={navigation} navigationTo="back" /> */}
             <View style={{ flex: 1, padding: 16 }}>
                 <FlatList
                     data={messages}
