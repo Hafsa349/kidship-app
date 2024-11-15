@@ -1,7 +1,8 @@
-import { fetchUserDetails, fetchUserDetailsByIds, createUser, toggleLike, addComment, getLikes, getComments } from './firebaseUserService';
+import { fetchUserDetails, fetchUserDetailsByIds, createUser, toggleLike, addComment, getLikes, getComments,fetchUserByPhoneNumber } from './firebaseUserService';
 import { getPosts, addPost } from './firebasePublicDataService';
 export {
     fetchUserDetails,
+    fetchUserByPhoneNumber,
     getPosts,
     fetchUserDetailsByIds,
     createUser,

@@ -96,12 +96,12 @@ export const PostDetailScreen = ({ navigation, route }) => {
                 {loading ? (
                   <ActivityIndicator size="small" color={Colors.primary} style={styles.activityIndicator} />
                 ) : (
-                  <Icon name={isLiked ? "heart" : "heart-outline"} size={20} color={Colors.orange} />
+                  <Icon name={isLiked ? "heart" : "heart-outline"} size={20} color={Colors.brandYellow} />
                 )}
                 <Text style={styles.likes}>{likes} {likes === 1 ? 'like' : 'likes' }</Text>
               </TouchableOpacity>
               <View style={styles.commentsContainer}>
-                <Icon name="chatbubble-outline" size={16} color={Colors.primary} />
+                <Icon name="chatbubble-outline" size={16} color={Colors.brandYellow} />
                 <Text style={styles.comments}>{comments.length} comments</Text>
               </View>
             </View>
@@ -110,6 +110,7 @@ export const PostDetailScreen = ({ navigation, route }) => {
           </View>
 
           {/* Comments Section */}
+
           <Text style={styles.title}>Comments</Text>
           <View style={styles.commentsList}>
             {comments.map((comment, index) => {
@@ -143,7 +144,7 @@ export const PostDetailScreen = ({ navigation, route }) => {
           {loading ? (
             <ActivityIndicator size="small" color={Colors.primary} style={styles.activityIndicator} />
           ) : (
-            <Icon name="send" size={16} color={Colors.orange} />
+            <Icon name="send" size={16} color={Colors.brandYellow} />
           )}
         </TouchableOpacity>
       </View>

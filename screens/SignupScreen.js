@@ -56,7 +56,7 @@ export const SignupScreen = ({ navigation }) => {
                     createdAt,
                     dateOfBirth: dateOfBirth // Assuming dateOfBirth is present in values
                 }
-                await createUser(uid, user);
+                await createUser(result.user.uid, user);
                 showAlert('Account has been created successfully');
                 navigation.navigate('HomeScreen');
             }

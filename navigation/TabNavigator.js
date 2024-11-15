@@ -56,7 +56,7 @@ export const TabNavigator = () => {
             return null; // You might want to show a loading indicator here
         }
 
-        const allowEditing = userDetail.userRoles?.some(role => allowedEditingRoles.includes(role)) || false;
+        const allowEditing = userDetail?.userRoles?.some(role => allowedEditingRoles.includes(role)) || false;
         console.log('allowEditing', allowedEditingRoles, allowEditing)
 
         return (
@@ -89,17 +89,8 @@ export const TabNavigator = () => {
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
-                <Tab.Screen name="Post" component={user ? CreatePostScreen : AuthStack} options={{
-                    title: 'Create Post',
-                    tabBarLabel: 'Post',
-                    tabBarActiveTintColor: Colors.mediumGray,
-                    tabBarInactiveTintColor: Colors.mediumGray,
-                    tabBarIcon: ({ focused }) => (
-                        <Ionicons name={focused ? "add-circle" : "add-circle-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
-                            style={{ marginRight: 0 }} />
-                    ),
-                }} />
-                {/* {allowEditing &&
+   
+                {allowEditing &&
                     <Tab.Screen name="Post" component={user ? CreatePostScreen : AuthStack} options={{
                         tabBarLabel: 'Post',
                         tabBarActiveTintColor: Colors.mediumGray,
@@ -109,7 +100,7 @@ export const TabNavigator = () => {
                                 style={{ marginRight: 0 }} />
                         ),
                     }} />
-                } */}
+                }
                 <Tab.Screen name="Calendar" component={user ? CalendarScreen : AuthStack} options={{
                     tabBarLabel: 'Calendar',
                     tabBarActiveTintColor: Colors.mediumGray,
