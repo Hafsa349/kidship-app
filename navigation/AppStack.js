@@ -24,7 +24,7 @@ export const AppStack = () => {
       <Screen component={MessageDetailScreen} name="MessageDetailScreen" options={({ route }) => ({ title: route.params.contactName })} />
       <Screen component={CalendarScreen} name="CalendarScreen" />
       <Screen component={CreatePostScreen} name="CreatePostScreen" />
-      <Screen component={PostDetailScreen} name="PostDetailScreen" options={{ headerShown: true, headerTitle: 'Detail' }}/>
+      <Screen component={PostDetailScreen} name="PostDetailScreen" options={{ headerShown: false, headerTitle: 'Post Detail' }}/>
       <Screen component={ReportScreen} name="ReportScreen" options={{ headerTitle: 'Child Progress' }}/>
       <Screen component={MoreScreen} name="MoreScreen" />
       <Screen component={LoginScreen} name="LoginScreen" />

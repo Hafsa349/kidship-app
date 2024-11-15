@@ -99,7 +99,7 @@ export const TabNavigator = () => {
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
-                {allowEditing &&
+                {/* {allowEditing &&
                     <Tab.Screen name="Post" component={user ? CreatePostScreen : AuthStack} options={{
                         tabBarLabel: 'Post',
                         tabBarActiveTintColor: Colors.mediumGray,
@@ -109,7 +109,7 @@ export const TabNavigator = () => {
                                 style={{ marginRight: 0 }} />
                         ),
                     }} />
-                }
+                } */}
                 <Tab.Screen name="Calendar" component={user ? CalendarScreen : AuthStack} options={{
                     tabBarLabel: 'Calendar',
                     tabBarActiveTintColor: Colors.mediumGray,
