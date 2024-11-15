@@ -1,18 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Text, TouchableOpacity, View, TextInput, Image, StyleSheet } from 'react-native';
-import { HeaderComponent, Button } from '../components';
 import * as ImagePicker from 'expo-image-picker';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Colors } from '../config';
-
-
+import { storage } from '../config';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { Button } from '../components';
+import { addPost } from '../services';
 
 export const CreatePostScreen = ({ navigation }) => {
     const [caption, setCaption] = useState('');
     const [image, setImage] = useState(null);
 
     const pickImage = async () => {
-        // No permissions request is necessary for launching the image library
+        // Request permission to access the gallery
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            alert('Permission to access the media library is required!');
+            return;
+        }
+
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,
@@ -25,47 +32,84 @@ export const CreatePostScreen = ({ navigation }) => {
         }
     };
 
-    useEffect(() => {
-        if (!image) pickImage()
-    }, [image]);
+    const handleShare = async () => {
+        if (!caption || !image) {
+            alert('Please add both a caption and an image.');
+            return;
+        }
+
+        // Upload image to Firebase Storage
+        const imageUri = image;
+        const response = await fetch(imageUri);
+
+        const blob = await response.blob();
+
+        // Create a unique name for the image
+        const imageRef = ref(storage, `posts/${Date.now()}`);
+
+        // Upload image to Firebase Storage
+        const uploadTask = uploadBytesResumable(imageRef, blob);
+
+        uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+                // You can track the upload progress here
+            },
+            (error) => {
+                alert('Error uploading image: ' + error.message);
+            },
+            async () => {
+                // Get the download URL after successful upload
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+                // Now, save the post in Firestore with the image URL
+                const post = {
+                    caption,
+                    imageUrl: downloadURL,
+                    createdAt: new Date(),
+                    isActive: true,
+                };
+
+                try {
+                    await addPost(post, user.uid);
+                    alert('Post shared successfully!');
+                    navigation.goBack();
+                } catch (error) {
+                    console.error('Error adding post: ', error);
+                    alert('Failed to share the post');
+                }
+            }
+        );
+    };
 
     return (
-        <>
-            {/* Image picker */}
-            <View style={styles.container}>
-                <View style={styles.imageContainer}>
-                    <TouchableOpacity onPress={pickImage} >
-                        {image ? <Image style={styles.imageDefault} source={{ uri: image }} /> : (
-                            <View style={styles.imageDefault}>
-                                <MaterialIcons name="upload" size={34} color="gray" />
-                            </View>
-                        )}
+        <View style={styles.container}>
+            <View style={styles.imageContainer}>
+                <TouchableOpacity onPress={pickImage}>
+                    {image ? (
+                        <Image style={styles.imageDefault} source={{ uri: image }} />
+                    ) : (
+                        <View style={styles.imageDefault}>
+                            <MaterialIcons name="upload" size={34} color="gray" />
+                        </View>
+                    )}
+                    <Text style={styles.imageText}>Change Image</Text>
+                </TouchableOpacity>
 
+                <TextInput
+                    style={styles.captionInput}
+                    placeholder="Write something about post ..."
+                    multiline={true}
+                    value={caption}
+                    onChangeText={(newValue) => setCaption(newValue)}
+                />
 
-                        <Text style={styles.imageText}>Change Image</Text>
-                    </TouchableOpacity>
-                    {/* TextInput for caption */}
-                    <TextInput style={styles.captionInput}
-                        className="h-[92px] font-plight w-full p-3 mb-10 bg-gray-50 rounded-2xl border-[1px] border-gray-200 "
-                        placeholder="Write a caption..."
-                        multiline={true}
-                        value={caption}
-                        onChangeText={(newValeu) => setCaption(newValeu)}
-                    />
-
-                    {/* Button */}
-                    <Button style={styles.button}>
-                        <Text style={styles.buttonText}>Share</Text>
-                    </Button>
-
-
-                </View>
+                <Button style={styles.button} onPress={handleShare}>
+                    <Text style={styles.buttonText}>Share</Text>
+                </Button>
             </View>
-
-
-
-        </>
-    )
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
@@ -86,7 +130,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: 10,
-
     },
     imageText: {
         fontWeight: 'bold',
@@ -94,17 +137,17 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         margin: 10,
         color: Colors.brandYellow,
-
     },
     captionInput: {
         height: 92,
         fontWeight: 'light',
         width: '100%',
         padding: 3,
-        backgroundColor: Colors.lightGrey,
         borderRadius: 10,
-        borderWidth: 0,
-        borderColor: Colors.legalGray
+        border: 1,
+        borderColor: Colors.brandYellow,
+        borderWidth: 1,
+        padding: 12,
     },
     button: {
         width: '100%',
@@ -114,11 +157,11 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.brandYellow,
         padding: 16,
         borderRadius: 8,
-        flexDirection: 'row' // Align content horizontally
+        flexDirection: 'row',
     },
     buttonText: {
         fontSize: 18,
         color: Colors.brandBlue,
-        fontWeight: '700'
+        fontWeight: '700',
     },
-})
+});

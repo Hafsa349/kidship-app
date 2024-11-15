@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
-import { HeaderComponent } from '../components';
 import { Colors } from '../config';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { toggleLike, addComment, getLikes, getComments, fetchUserDetailsByIds } from '../services'; // Import required services
-import { collection, getDocs, query, where } from 'firebase/firestore'; // Firestore query functions
 
 export const PostDetailScreen = ({ navigation, route }) => {
   const { post, uid } = route.params;
@@ -20,10 +18,13 @@ export const PostDetailScreen = ({ navigation, route }) => {
     try {
       // Fetch comments for the current post
       const fetchedComments = await getComments(post.id);
-      console.log(fetchedComments)
-      setComments(fetchedComments);
+      console.log(fetchedComments);
 
-      //Fetch author details for the comments
+      // Sort comments by the createdAt field in descending order (latest first)
+      const sortedComments = fetchedComments.sort((a, b) => b.createdAt - a.createdAt);
+      setComments(sortedComments); // Set sorted comments
+
+      // Fetch author details for the comments
       const authorIds = fetchedComments.map(comment => comment.authorId);
       const uniqueAuthorIds = [...new Set(authorIds)]; // Get unique author IDs
       const authorDetails = await fetchUserDetailsByIds(uniqueAuthorIds);
@@ -35,8 +36,8 @@ export const PostDetailScreen = ({ navigation, route }) => {
       console.error('Error fetching comments and authors:', error);
     }
   };
+
   useEffect(() => {
-    
     fetchCommentsAndAuthors();
   }, [post.id]); // Fetch comments and authors on component mount
 
@@ -59,9 +60,13 @@ export const PostDetailScreen = ({ navigation, route }) => {
     try {
       await addComment(post.id, comment, uid);
       const updatedComments = await getComments(post.id);
-      setComments(updatedComments); // Update comments after submitting
+
+      // Sort the updated comments by createdAt field in descending order
+      const sortedComments = updatedComments.sort((a, b) => b.createdAt - a.createdAt);
+      setComments(sortedComments); // Set sorted comments
+
       setComment(''); // Clear comment input
-      fetchCommentsAndAuthors();
+      fetchCommentsAndAuthors(); // Fetch updated comments and author details
       Keyboard.dismiss(); // Hide keyboard after submitting
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -74,8 +79,6 @@ export const PostDetailScreen = ({ navigation, route }) => {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* <HeaderComponent navigation={navigation} title="Post Detail" navigationTo="back" /> */}
-
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.container}>
           <View style={styles.authorContainer}>
@@ -95,7 +98,7 @@ export const PostDetailScreen = ({ navigation, route }) => {
                 ) : (
                   <Icon name={isLiked ? "heart" : "heart-outline"} size={20} color={Colors.orange} />
                 )}
-                <Text style={styles.likes}>{likes} likes</Text>
+                <Text style={styles.likes}>{likes} {likes === 1 ? 'like' : 'likes' }</Text>
               </TouchableOpacity>
               <View style={styles.commentsContainer}>
                 <Icon name="chatbubble-outline" size={16} color={Colors.primary} />
@@ -153,8 +156,8 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: Colors.white,
   },
-  title:{
-    marginTop:10,
+  title: {
+    marginTop: 10,
     fontSize: 18,
     fontWeight: 'bold'
   },
@@ -275,6 +278,7 @@ const styles = StyleSheet.create({
   commentText: {
     fontSize: 16,
     color: Colors.darkGrey,
+    marginLeft: 40,
   },
   activityIndicator: {
     marginLeft: 10,

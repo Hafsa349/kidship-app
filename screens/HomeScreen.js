@@ -4,7 +4,7 @@ import { Colors, auth } from '../config';
 import { HeaderComponent } from '../components';
 import { onAuthStateChanged } from 'firebase/auth';
 import { AuthenticatedUserContext } from '../providers';
-import { fetchUserDetailsByIds, getPosts, toggleLike, getLikes } from '../services';
+import { fetchUserDetailsByIds, getPosts, toggleLike, getLikes, getComments } from '../services'; // Add getComments service
 import { formatDateToDays } from '../utils';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -29,12 +29,16 @@ export const HomeScreen = ({ navigation }) => {
           authorDetailsArray.map(user => [user.uid, user])
         );
 
-        const postsWithAuthorDetails = await Promise.all(postData.map(async (post) => {
+        // Fetch comment counts for each post
+        const postsWithCommentCounts = await Promise.all(postData.map(async (post) => {
           const postLikes = await getLikes(post.id);
+          const postComments = await getComments(post.id); // Fetch comments for the post
+          
           return {
             ...post,
             likes: postLikes.length,
             isLiked: postLikes.includes(user.uid),
+            commentsCount: postComments.length, // Store comment count
             authorDetails: authorDetailsMap[post.authorId] || {
               name: 'Unknown',
               image_url: 'unknown',
@@ -42,7 +46,7 @@ export const HomeScreen = ({ navigation }) => {
           };
         }));
 
-        const sortedPosts = postsWithAuthorDetails.sort((a, b) => {
+        const sortedPosts = postsWithCommentCounts.sort((a, b) => {
           const dateA = a.createdAt?.seconds * 1000 + a.createdAt?.nanoseconds / 1000000;
           const dateB = b.createdAt?.seconds * 1000 + b.createdAt?.nanoseconds / 1000000;
           return dateB - dateA;
@@ -96,7 +100,7 @@ export const HomeScreen = ({ navigation }) => {
     return (
       <TouchableOpacity
         style={styles.postCard}
-        onPress={() => navigation.navigate('PostDetailScreen', { post: item })}
+        onPress={() => navigation.navigate('PostDetailScreen', { post: item, uid: user.uid })}
       >
         {displayName && (
           <View style={styles.postHeader}>
@@ -126,7 +130,7 @@ export const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
           <View style={styles.commentsContainer}>
             <Icon name="chatbubble-outline" size={20} color={Colors.primary} />
-            <Text style={styles.comments}>{item.comments ? item.comments.length : 0} comments</Text>
+            <Text style={styles.comments}>{item.commentsCount} {item.commentsCount === 1 ? 'comment' : 'comments'}</Text>
           </View>
         </View>
         <Text style={styles.postText}>

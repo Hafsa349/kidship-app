@@ -15,3 +15,16 @@ export const getPosts = async () => {
         return null;
     }
 };
+
+
+export const addPost = async (post) => {
+    try {
+        const col = collection(db, 'posts');
+        const docRef = await addDoc(col, post);
+        console.log("Post added with ID: ", docRef.id);
+        return { id: docRef.id, ...post };
+    } catch (error) {
+        console.error('Error adding post', error);
+        return null;
+    }
+};
