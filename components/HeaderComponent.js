@@ -20,7 +20,7 @@ export const HeaderComponent = ({ navigation, title, navigationTo, authUser = nu
                 <View style={styles.headerLeft}>
                     {navigationTo ? (
                         <TouchableOpacity onPress={() => navigation.goBack()}>
-                            <Icon name="keyboard-backspace" size={26} color={Colors.white} />
+                            <Icon name="keyboard-backspace" size={26} color={Colors.brandYellow} />
                         </TouchableOpacity>
                     ) : (
                         <Logo uri={Images.logoLong} width={120} height={40} />

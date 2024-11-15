@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import { Text, StyleSheet, Alert, SafeAreaView } from 'react-native';
 import { Formik } from 'formik';
 import { createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth';
-import { setDoc, doc } from 'firebase/firestore';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { View, TextInput, FormErrorMessage, HeaderComponent, Button } from '../components';
 import { Colors, auth, db, Images } from '../config';
 import { useTogglePasswordVisibility } from '../hooks';
 import { signupValidationSchema } from '../utils';
-import { fetchUserByPhoneNumber } from '../services';
+import { fetchUserByPhoneNumber, createUser } from '../services';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Logo } from '../components/Logo';
 
@@ -57,7 +56,7 @@ export const SignupScreen = ({ navigation }) => {
                     createdAt,
                     dateOfBirth: dateOfBirth // Assuming dateOfBirth is present in values
                 }
-                await setDoc(doc(db, "users", result.user.uid), user);
+                await createUser(uid, user);
                 showAlert('Account has been created successfully');
                 navigation.navigate('HomeScreen');
             }

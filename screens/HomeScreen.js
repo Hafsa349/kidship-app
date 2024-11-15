@@ -4,7 +4,7 @@ import { Colors, auth } from '../config';
 import { HeaderComponent } from '../components';
 import { onAuthStateChanged } from 'firebase/auth';
 import { AuthenticatedUserContext } from '../providers';
-import { fetchUserDetailsByIds, getPosts } from '../services';
+import { fetchUserDetailsByIds, getPosts, toggleLike, getLikes } from '../services';
 import { formatDateToDays } from '../utils';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -13,6 +13,7 @@ const screenWidth = Dimensions.get('window').width;
 export const HomeScreen = ({ navigation }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [likeLoading, setLikeLoading] = useState({}); // Track loading per post
   const { user, setUser } = useContext(AuthenticatedUserContext);
 
   useEffect(() => {
@@ -20,33 +21,31 @@ export const HomeScreen = ({ navigation }) => {
       setLoading(true);
       try {
         const postData = await getPosts();
-
-        // Collect unique author IDs
         const userIds = postData.map(post => post.authorId).filter(id => id);
-        const uniqueUserIds = [...new Set(userIds)]; // Remove duplicates
-
-        // Fetch author details in bulk
+        const uniqueUserIds = [...new Set(userIds)];
         const authorDetailsArray = await fetchUserDetailsByIds(uniqueUserIds);
 
-        // Create a map for quick lookup by author ID
         const authorDetailsMap = Object.fromEntries(
           authorDetailsArray.map(user => [user.uid, user])
         );
 
-        // Attach author details to each post
-        const postsWithAuthorDetails = postData.map(post => ({
-          ...post,
-          authorDetails: authorDetailsMap[post.authorId] || {
-            name: 'Unknown',
-            image_url: 'unknown', // Default avatar
-          },
+        const postsWithAuthorDetails = await Promise.all(postData.map(async (post) => {
+          const postLikes = await getLikes(post.id);
+          return {
+            ...post,
+            likes: postLikes.length,
+            isLiked: postLikes.includes(user.uid),
+            authorDetails: authorDetailsMap[post.authorId] || {
+              name: 'Unknown',
+              image_url: 'unknown',
+            },
+          };
         }));
 
-        // Sort posts based on createdAt date in descending order
         const sortedPosts = postsWithAuthorDetails.sort((a, b) => {
-          const dateA = a.createdAt?.seconds * 1000 + a.createdAt?.nanoseconds / 1000000; // Convert Firestore timestamp to milliseconds
-          const dateB = b.createdAt?.seconds * 1000 + b.createdAt?.nanoseconds / 1000000; // Convert Firestore timestamp to milliseconds
-          return dateB - dateA; // Descending order
+          const dateA = a.createdAt?.seconds * 1000 + a.createdAt?.nanoseconds / 1000000;
+          const dateB = b.createdAt?.seconds * 1000 + b.createdAt?.nanoseconds / 1000000;
+          return dateB - dateA;
         });
 
         setPosts(sortedPosts);
@@ -66,6 +65,30 @@ export const HomeScreen = ({ navigation }) => {
     return () => unsubscribe();
   }, [setUser]);
 
+  const handleLike = async (postId) => {
+    try {
+      setLikeLoading(prev => ({ ...prev, [postId]: true })); // Start loading for specific post
+      const postIndex = posts.findIndex(post => post.id === postId);
+      const isCurrentlyLiked = posts[postIndex].isLiked;
+
+      await toggleLike(postId, user.uid, isCurrentlyLiked);
+
+      const updatedLikes = await getLikes(postId);
+
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === postId
+            ? { ...post, likes: updatedLikes.length, isLiked: !isCurrentlyLiked }
+            : post
+        )
+      );
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    } finally {
+      setLikeLoading(prev => ({ ...prev, [postId]: false })); // Stop loading for specific post
+    }
+  };
+
   const renderPost = ({ item }) => {
     const displayName = `${item.authorDetails?.firstName || ''}`.trim();
     const createdAt = formatDateToDays(item.createdAt);
@@ -73,7 +96,7 @@ export const HomeScreen = ({ navigation }) => {
     return (
       <TouchableOpacity
         style={styles.postCard}
-        onPress={() => navigation.navigate('PostDetailScreen', { post: item })} // Navigate to DetailScreen
+        onPress={() => navigation.navigate('PostDetailScreen', { post: item })}
       >
         {displayName && (
           <View style={styles.postHeader}>
@@ -83,18 +106,26 @@ export const HomeScreen = ({ navigation }) => {
             />
             <View style={styles.headerContent}>
               <Text style={styles.authorName}>{displayName}</Text>
-              <Text style={styles.createdAt}>{createdAt}</Text> 
+              <Text style={styles.createdAt}>{createdAt}</Text>
             </View>
           </View>
         )}
         <Image source={{ uri: item.image_url }} style={styles.postImage} />
         <View style={styles.interactionContainer}>
-          <View style={styles.likesContainer}>
-            <Icon name="heart" size={16} color={Colors.primary} />
-            <Text style={styles.likes}>{item.likes} likes</Text>
-          </View>
+          <TouchableOpacity onPress={() => handleLike(item.id)} style={styles.likesContainer}>
+            {likeLoading[item.id] ? (
+              <ActivityIndicator size="small" color={Colors.orange} />
+            ) : (
+              <Icon
+                name={item.isLiked ? "heart" : "heart-outline"}
+                size={16}
+                color={Colors.brandYellow}
+              />
+            )}
+            <Text style={styles.likes}>{item.likes} {item.likes === 1 ? 'like' : 'likes' }</Text>
+          </TouchableOpacity>
           <View style={styles.commentsContainer}>
-            <Icon name="chatbubble-outline" size={16} color={Colors.primary} />
+            <Icon name="chatbubble-outline" size={20} color={Colors.primary} />
             <Text style={styles.comments}>{item.comments ? item.comments.length : 0} comments</Text>
           </View>
         </View>
@@ -156,10 +187,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
-    justifyContent: 'space-between', // Space between avatar and header content
+    justifyContent: 'space-between',
   },
   headerContent: {
-    flex: 1, // Allow it to take remaining space
+    flex: 1,
   },
   avatar: {
     width: 50,
@@ -170,7 +201,7 @@ const styles = StyleSheet.create({
   createdAt: {
     fontSize: 14,
     color: Colors.grey,
-    textAlign: 'left', // Align text to the right
+    textAlign: 'left',
   },
   authorName: {
     fontWeight: 'bold',
