@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, Button } from 'react-native';
-import { HeaderComponent } from '../components';
 import { Calendar } from 'react-native-calendars';
 import { FontAwesome } from '@expo/vector-icons';
 import { Colors } from '../config';

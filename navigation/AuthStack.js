@@ -11,7 +11,6 @@ export const AuthStack = () => {
       <Screen component={GetStartedScreen} name="GetStartedScreen" />
       <Screen component={LoginScreen} name="LoginScreen" />
       <Screen component={HomeScreen} name="HomeScreen" />
-
       <Screen component={SignupScreen} name="SignupScreen" />
       <Screen component={ForgotPasswordScreen} name="ForgotPasswordScreen" />
     </Navigator>
