@@ -35,7 +35,7 @@ export const HeaderComponent = ({ navigation, title, navigationTo, authUser = nu
                             <><TouchableOpacity onPress={() => navigation.navigate('NotificationScreen')}>
                                 <Ionicons name='notifications' size={30} color='#f5b22d' />
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={() => navigation.navigate('ConversationScreen')}>
+                                <TouchableOpacity onPress={() => navigation.navigate('ChatScreen')}>
                                 <Ionicons name='chatbubble-ellipses' size={30} color='#f5b22d' />
                                 </TouchableOpacity></>
                         }

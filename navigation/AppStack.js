@@ -14,9 +14,11 @@ import {
   NotificationScreen, 
   PostDetailScreen, 
   ReportScreen,
-  MessageDetailScreen,
+  ChatRoomScreen,
   ConversationScreen,
-  NewConversationScreen
+  NewConversationScreen,
+  ChatScreen,
+  NewChatScreen
 } from '../screens';
 import { Colors } from '../config';
 
@@ -29,9 +31,9 @@ export const AppStack = () => {
       <Screen component={NotificationScreen} name="NotificationScreen" options={{ headerTitle: 'Notifications' }}/>
       <Screen component={MyAccountScreen} name="MyAccountScreen" />
       <Screen component={HomeWorkScreen} name="HomeWorkScreen" />
-      <Screen component={ConversationScreen} name="ConversationScreen" options={{ headerTitle: 'Messages' }} />
-      <Screen component={NewConversationScreen} name='NewConversationScreen' options={{ headerTitle: 'New Message' }} />
-      <Screen component={MessageDetailScreen} name="MessageDetailScreen" options={({ route }) => ({ title: route.params.contactName })} />
+      <Screen component={ChatScreen} name="ChatScreen" options={{ headerTitle: 'Messages' }} />
+      <Screen component={NewChatScreen} name='NewChatScreen' options={{ headerTitle: 'New Message' }} />
+      <Screen component={ChatRoomScreen} name="ChatRoomScreen" options={({ route }) => ({ title: route.params.contactName })} />
       <Screen component={CalendarScreen} name="CalendarScreen" options={{ headerTitle: 'Events' }}/>
       <Screen component={CreatePostScreen} name="CreatePostScreen" />
       <Screen component={PostDetailScreen} name="PostDetailScreen" options={{ headerShown: true, headerTitle: 'Post Detail' }}/>
@@ -40,6 +42,7 @@ export const AppStack = () => {
       <Screen component={LoginScreen} name="LoginScreen" />
       <Screen component={SignupScreen} name="SignupScreen" />
       <Screen component={ForgotPasswordScreen} name="ForgotPasswordScreen" />
+      
     </Navigator>
   );
 };

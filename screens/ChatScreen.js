@@ -20,11 +20,11 @@ const conversations = [
     // Add more contacts here
 ];
 
-export const ConversationScreen = ({ navigation }) => {
+export const ChatScreen = ({ navigation }) => {
     useLayoutEffect(() => {
         navigation.setOptions({
             headerRight: () => (
-                <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('NewConversationScreen')}>
+                <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('NewChatScreen')}>
                     <AntDesign name="pluscircle" size={32} color="#f5b22d" />
                 </TouchableOpacity>
             ),
@@ -34,8 +34,7 @@ export const ConversationScreen = ({ navigation }) => {
     const RenderConversationItem = ({ item, index, noBorder }) => (
         <TouchableOpacity
             style={[styles.itemContainer, noBorder ? {} : styles.borderBottom]}
-            onPress={() => navigation.navigate('MessageDetailScreen', { contactName: item.firstName + ' ' + item.lastName })}
-        >
+            onPress={() => navigation.navigate('ChatRoomScreen', { contactId: item.id, contactName: item.firstName + ' ' + item.lastName })}    >
             <Image
                 source={{ uri: item?.avatar }}
                 style={styles.avatar}
