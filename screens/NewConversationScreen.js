@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Image, TouchableOpacity, StyleSheet, View, Text, FlatList } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../config/firebase'; // Assuming the correct path for your firebase config
+import { getAuth } from 'firebase/auth'; // Import Firebase Auth
 
 export const NewConversationScreen = ({ navigation }) => {
   const [users, setUsers] = useState([]); // State to store the users data
+  const currentUser = getAuth().currentUser; // Get the current user
+  const currentUserId = currentUser?.uid; // Use the UID of the current user for comparison
 
   // Fetch users from Firestore
   useEffect(() => {
@@ -12,17 +15,39 @@ export const NewConversationScreen = ({ navigation }) => {
       try {
         const querySnapshot = await getDocs(collection(db, 'users'));
         const usersData = querySnapshot.docs.map(doc => ({
-          id: doc.id, // Assuming 'id' is Firestore's document ID
+          id: doc.id, // Assuming 'id' is Firestore's document ID (this should match user UID if you are using the UID as the document ID)
           ...doc.data(), // Get the document data
         }));
-        setUsers(usersData); // Set the users data to state
+
+        // Filter out the current user based on their UID
+        const filteredUsers = usersData.filter(user => user.id !== currentUserId);
+
+        // Sort users by firstName and lastName in ascending order
+        const sortedUsers = filteredUsers.sort((a, b) => {
+          if (a.firstName.toLowerCase() < b.firstName.toLowerCase()) {
+            return -1;
+          }
+          if (a.firstName.toLowerCase() > b.firstName.toLowerCase()) {
+            return 1;
+          }
+          // If first names are the same, compare last names
+          if (a.lastName.toLowerCase() < b.lastName.toLowerCase()) {
+            return -1;
+          }
+          if (a.lastName.toLowerCase() > b.lastName.toLowerCase()) {
+            return 1;
+          }
+          return 0;
+        });
+
+        setUsers(sortedUsers); // Set the sorted users data to state
       } catch (error) {
         console.error('Error fetching users from Firestore:', error);
       }
     };
 
     fetchUsers(); // Call the fetch function when the component mounts
-  }, []); // Empty dependency array means this effect runs only once when the component mounts
+  }, [currentUserId]); // Re-run the effect if the current user changes
 
   // Fallback avatar URL
   const getAvatarUrl = (avatar) => {
@@ -54,8 +79,8 @@ export const NewConversationScreen = ({ navigation }) => {
   return (
     <View>
       <FlatList
-        data={users} // Use the users state
-        keyExtractor={(item) => item.id} // Using the Firestore document ID
+        data={users} // Use the users state (sorted)
+        keyExtractor={(item) => item.id} // Using the Firestore document ID (which should match user UID)
         renderItem={({ item, index }) => (
           <RenderNewConversationItem
             item={item}
