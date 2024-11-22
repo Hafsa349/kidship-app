@@ -4,7 +4,6 @@ import { Logo } from './Logo';
 import { Icon } from './Icon';
 import { Images, Colors, auth } from '../config';
 import { AuthenticatedUserContext } from '../providers';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 

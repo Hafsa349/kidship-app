@@ -22,7 +22,6 @@ export const ConversationScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={{flex: 1}}>
         <View style={{ flex: 1 }}>
-            {/* <HeaderComponent title="Messages" navigation={navigation} navigationTo="back" /> */}
             <FlatList
                 data={conversations}
                 keyExtractor={(item) => item.id}
