@@ -1,3 +1,4 @@
+//TabNavigator.js
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React, { useState, useEffect, useContext } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';

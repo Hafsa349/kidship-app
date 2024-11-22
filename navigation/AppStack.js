@@ -30,7 +30,7 @@ export const AppStack = () => {
       <Screen component={MyAccountScreen} name="MyAccountScreen" />
       <Screen component={HomeWorkScreen} name="HomeWorkScreen" />
       <Screen component={ConversationScreen} name="ConversationScreen" options={{ headerTitle: 'Messages' }} />
-      <Screen component={NewConversationScreen} name='NewConversationScreen' options={{ headerTitle: 'New Messages' }} />
+      <Screen component={NewConversationScreen} name='NewConversationScreen' options={{ headerTitle: 'New Message' }} />
       <Screen component={MessageDetailScreen} name="MessageDetailScreen" options={({ route }) => ({ title: route.params.contactName })} />
       <Screen component={CalendarScreen} name="CalendarScreen" options={{ headerTitle: 'Events' }}/>
       <Screen component={CreatePostScreen} name="CreatePostScreen" />

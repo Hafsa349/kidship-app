@@ -1,28 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Image, TouchableOpacity, StyleSheet, View, Text, FlatList } from 'react-native';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../config/firebase'; // Assuming the correct path for your firebase config
+
+const users = [
+  {
+    id: '1',
+    firstName: 'Charlie',
+    lastName: 'Brown',
+    avatar: '', // No avatar
+    email: 'charlie@brown.com'
+  },
+  {
+    id: '3',
+    firstName: 'Alice',
+    lastName: 'Smith',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YXZhdGFyfGVufDB8fDB8fHww',
+    email: 'alice@smith.com'
+  },
+  {
+    id: '2',
+    firstName: 'Bob',
+    lastName: 'Thomas',
+    avatar: 'https://plus.unsplash.com/premium_photo-1689539137236-b68e436248de?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bWFuJTIwYXZhdGFyfGVufDB8fDB8fHww',
+    email: 'bob@thomas.com'
+  },
+
+  // Add more contacts here
+];
 
 export const NewConversationScreen = ({ navigation }) => {
-  const [users, setUsers] = useState([]); // State to store the users data
-
-  // Fetch users from Firestore
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'users'));
-        const usersData = querySnapshot.docs.map(doc => ({
-          id: doc.id, // Assuming 'id' is Firestore's document ID
-          ...doc.data(), // Get the document data
-        }));
-        setUsers(usersData); // Set the users data to state
-      } catch (error) {
-        console.error('Error fetching users from Firestore:', error);
-      }
-    };
-
-    fetchUsers(); // Call the fetch function when the component mounts
-  }, []); // Empty dependency array means this effect runs only once when the component mounts
 
   // Fallback avatar URL
   const getAvatarUrl = (avatar) => {
@@ -54,8 +59,8 @@ export const NewConversationScreen = ({ navigation }) => {
   return (
     <View>
       <FlatList
-        data={users} // Use the users state
-        keyExtractor={(item) => item.id} // Using the Firestore document ID
+        data={users}
+        keyExtractor={(item) => item.id.toString()} // Assuming item.id is a unique value
         renderItem={({ item, index }) => (
           <RenderNewConversationItem
             item={item}
