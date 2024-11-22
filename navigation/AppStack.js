@@ -3,9 +3,17 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
   HomeScreen,
-  MyAccountScreen, MoreScreen,
-  LoginScreen, SignupScreen, ForgotPasswordScreen, CreatePostScreen, CalendarScreen, HomeWorkScreen,
-  NotificationScreen, PostDetailScreen, ReportScreen,
+  MyAccountScreen, 
+  MoreScreen,
+  LoginScreen, 
+  SignupScreen, 
+  ForgotPasswordScreen, 
+  CreatePostScreen, 
+  CalendarScreen, 
+  HomeWorkScreen,
+  NotificationScreen, 
+  PostDetailScreen, 
+  ReportScreen,
   MessageDetailScreen,
   ConversationScreen
 } from '../screens';

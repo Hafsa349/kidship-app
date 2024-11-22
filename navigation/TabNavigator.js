@@ -10,7 +10,7 @@ import { Icon } from '../components';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { AuthStack, AppStack, MoreAppStack } from '../navigation';
-import { CalendarScreen, CreatePostScreen, HomeWorkScreen } from '../screens';
+import { CalendarScreen, CreatePostScreen, HomeWorkScreen, ReportScreen } from '../screens';
 import { fetchUserDetails } from '../services';
 
 // Create bottom tab navigator
@@ -80,8 +80,8 @@ export const TabNavigator = () => {
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
-                <Tab.Screen name="Homework" component={user ? HomeWorkScreen : AuthStack} options={{
-                    tabBarLabel: 'Homework',
+                <Tab.Screen name="Report" component={user ? ReportScreen : AuthStack} options={{
+                    tabBarLabel: 'Child Progress',
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
                     tabBarIcon: ({ focused }) => (

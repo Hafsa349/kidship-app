@@ -4,8 +4,9 @@ import { Logo } from './Logo';
 import { Icon } from './Icon';
 import { Images, Colors, auth } from '../config';
 import { AuthenticatedUserContext } from '../providers';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import Ionicons from '@expo/vector-icons/Ionicons';
+
 
 
 
@@ -32,11 +33,11 @@ export const HeaderComponent = ({ navigation, title, navigationTo, authUser = nu
                 <View style={styles.headerRight}>
                     <>
                         {user &&
-                            <><TouchableOpacity onPress={() => navigation.navigate('ReportScreen')}>
-                                <AntDesign name='smileo' size={30} color='#f5b22d' />
-                            </TouchableOpacity>
+                            <><TouchableOpacity onPress={() => navigation.navigate('NotificationScreen')}>
+                                <Ionicons name='notifications' size={30} color='#f5b22d' />
+                                </TouchableOpacity>
                                 <TouchableOpacity onPress={() => navigation.navigate('ConversationScreen')}>
-                                <AntDesign name='message1' size={30} color='#f5b22d' />
+                                <Ionicons name='chatbubble-ellipses' size={30} color='#f5b22d' />
                                 </TouchableOpacity></>
                         }
                     </>
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'flex-end',
         gap: 3,
-        paddingHorizontal: 10,
+        paddingHorizontal: 20,
         height: 60,
 
 
