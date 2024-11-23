@@ -1,103 +1,73 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, FlatList, Alert } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { db, auth } from '../config/firebase';  // Import your firebase config
-import { collection, doc, addDoc, setDoc, getDoc, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore';  // Firestore functions
+import { db, auth } from '../config/firebase';
+import { collection, doc, addDoc, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore';
+import { format } from 'date-fns';
 
-export const ChatRoomScreen = ({ route, navigation }) => {
-    const { item } = route.params;  // The recipient from route params
-    const [messages, setMessages] = useState([]); // State for messages
-    const [message, setMessage] = useState(''); // State for the message input
-    const scrollViewRef = useRef(null);  // Ref for scroll view to auto-scroll when new messages are added
-    const currentUser = auth.currentUser; // Get the current user
+export const ChatRoomScreen = ({ route }) => {
+    const { item } = route.params;
+    const [messages, setMessages] = useState([]);
+    const [message, setMessage] = useState(''); // Control the TextInput value
+    const scrollViewRef = useRef(null);
+    const [isSendDisabled, setIsSendDisabled] = useState(true);
 
-    console.log("Current User ID:", currentUser?.uid);
-    console.log("Recipient ID (item.id):", item?.id);
+    const currentUser = auth.currentUser;
+    const roomId = item.roomId || [currentUser?.uid, item?.id].sort().join('_');
 
-    // Generate room ID based on currentUser and recipient's user ID
-    const getRoomId = (user1, user2) => {
-        const sortUserId = [user1, user2].sort();  // Sort the IDs to avoid duplicate rooms
-        return sortUserId.join('_');
-    };
-
-    // Firebase query for the chat room
     useEffect(() => {
-        if (!currentUser?.uid || !item?.id) {
-            console.error("Missing currentUser or item id");
-            return;  // Exit if currentUser or item id is missing
-        }
+        const messagesRef = collection(db, 'rooms', roomId, 'messages');
+        const q = query(messagesRef, orderBy('createdAt', 'desc'));
 
-        const roomId = getRoomId(currentUser.uid, item.id);  // Generate the room ID
-        const docRef = doc(db, 'rooms', roomId);  // Reference to the chat room document
-        const messagesRef = collection(docRef, 'messages');  // Messages collection
-        const q = query(messagesRef, orderBy('createAt', 'asc'));  // Query messages ordered by creation time
-
-        const unsub = onSnapshot(q, (snapshot) => {
-            const allMessages = snapshot.docs.map(doc => doc.data());  // Fetch all messages
-            setMessages(allMessages);  // Update the state with the new messages
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedMessages = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            setMessages(fetchedMessages);
+        }, (error) => {
+            console.error('Error fetching messages:', error);
+            Alert.alert('Error', 'Unable to fetch messages.');
         });
 
-        // Cleanup on unmount
-        return () => unsub();
-    }, [currentUser?.uid, item?.id]);
+        return () => unsubscribe();
+    }, [roomId]);
 
-    // Send message handler
     const handleSendMessage = async () => {
-        if (message.trim() && currentUser?.uid && item?.id) {
-            const roomId = getRoomId(currentUser?.uid, item?.id); // Generate room ID
-            const newMessage = {
-                id: Date.now().toString(),
-                text: message,
-                sender: 'You',
+        if (!message.trim()) return;
+
+        try {
+            const messagesRef = collection(db, 'rooms', roomId, 'messages');
+            await addDoc(messagesRef, {
                 userId: currentUser?.uid,
-                createAt: new Date(),
-            };
+                text: message.trim(),
+                createdAt: Timestamp.fromDate(new Date()),
+            });
 
-            try {
-                const docRef = doc(db, 'rooms', roomId); // Reference to the room document
-
-                // Check if room document exists. If not, create it.
-                const docSnapshot = await getDoc(docRef);
-                if (!docSnapshot.exists()) {
-                    // Room doesn't exist, create it
-                    await setDoc(docRef, {
-                        createdAt: Timestamp.now(), // Use Firebase Timestamp for createdAt
-                        participants: [currentUser?.uid, item?.id], // Store the participants (user IDs)
-                    });
-                }
-
-                // Add the new message to the messages sub-collection
-                const messagesRef = collection(docRef, 'messages'); // Messages sub-collection
-                await addDoc(messagesRef, newMessage);  // Add the message to Firestore
-                setMessage('');  // Clear input field after sending
-            } catch (error) {
-                console.error("Error sending message:", error);
-            }
-        } else {
-            console.error("Missing data for message: currentUser or item is undefined");
+            // Clear the input field
+            setMessage('');
+        } catch (error) {
+            Alert.alert('Message', error.message);
         }
     };
 
-    // Scroll to the bottom of the chat view when new messages arrive
-    const updateScrollView = () => {
-        setTimeout(() => {
-            scrollViewRef?.current?.scrollToEnd({ animated: true });
-        }, 100);
-    };
+    const renderMessageItem = ({ item: message }) => {
+        const messageTime = format(new Date(message?.createdAt?.seconds * 1000), 'HH:mm');
+        const isSender = currentUser?.uid === message?.userId;
 
-    useEffect(() => {
-        updateScrollView();  // Scroll to the bottom whenever new messages are loaded or sent
-    }, [messages]);
-
-    const renderMessageItem = ({ item }) => {
-        const isSender = item.userId === currentUser?.uid;
         return (
-            <View style={[styles.messageContainer, isSender ? styles.senderMessage : styles.receiverMessage]}>
-                <View style={[styles.messageBubble, isSender ? styles.senderBubble : styles.receiverBubble]}>
-                    <Text style={styles.messageText}>{item.text}</Text>
+            <View style={isSender ? styles.senderContainer : styles.receiverContainer}>
+                <View style={isSender ? styles.senderBubble : styles.receiverBubble}>
+                    <Text style={styles.messageText}>{message?.text}</Text>
+                    <Text style={styles.timestamp}>{messageTime}</Text>
                 </View>
             </View>
         );
+    };
+
+    const handleInputChange = (text) => {
+        setMessage(text);
+        setIsSendDisabled(text.trim().length === 0);
     };
 
     return (
@@ -108,8 +78,8 @@ export const ChatRoomScreen = ({ route, navigation }) => {
                     data={messages}
                     renderItem={renderMessageItem}
                     keyExtractor={(item) => item.id}
-                    // Remove inverted to show the oldest messages at the bottom and recent ones at the top
-                    contentContainerStyle={{ paddingTop: 10, paddingBottom: 10 }}  // Add padding to both top and bottom
+                    contentContainerStyle={{ paddingTop: 10, paddingBottom: 10 }}
+                    inverted
                 />
             </View>
 
@@ -117,19 +87,29 @@ export const ChatRoomScreen = ({ route, navigation }) => {
                 <TextInput
                     style={styles.textInput}
                     placeholder="Type a message..."
-                    value={message}
-                    onChangeText={setMessage}
+                    value={message} // Bind TextInput value to state
+                    onChangeText={handleInputChange} // Update state on input change
                     onSubmitEditing={handleSendMessage}
                 />
-                <TouchableOpacity onPress={handleSendMessage} style={styles.sendButton}>
-                    <MaterialCommunityIcons name="rocket-launch-outline" size={30} color="#737373" />
+                <TouchableOpacity
+                    onPress={handleSendMessage}
+                    style={[
+                        styles.sendButton,
+                        isSendDisabled ? { backgroundColor: '#eee' } : { backgroundColor: '#E5E7EB' },
+                    ]}
+                    disabled={isSendDisabled}
+                >
+                    <MaterialCommunityIcons
+                        name="rocket-launch-outline"
+                        size={30}
+                        color={isSendDisabled ? '#fff' : '#737373'}
+                    />
                 </TouchableOpacity>
             </View>
         </KeyboardAvoidingView>
     );
 };
 
-// Styles for the components
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -140,35 +120,41 @@ const styles = StyleSheet.create({
         paddingTop: 10,
         paddingBottom: 10,
     },
-    messageContainer: {
+    senderContainer: {
         flexDirection: 'row',
-        marginBottom: 10,
-    },
-    senderMessage: {
         justifyContent: 'flex-end',
+        marginBottom: 10,
         marginRight: 10,
     },
-    receiverMessage: {
+    receiverContainer: {
+        flexDirection: 'row',
         justifyContent: 'flex-start',
+        marginBottom: 10,
         marginLeft: 10,
     },
-    messageBubble: {
-        padding: 12,
-        borderRadius: 15,
-    },
     senderBubble: {
+        maxWidth: '80%',
+        padding: 12,
+        borderRadius: 20,
         backgroundColor: '#fff',
-        borderColor: '#e5e5e5',
         borderWidth: 1,
+        borderColor: '#e5e5e5',
     },
     receiverBubble: {
+        maxWidth: '80%',
+        padding: 12,
+        borderRadius: 20,
         backgroundColor: '#f5b22d',
-        borderColor: '#ca8a04',
         borderWidth: 1,
+        borderColor: '#ca8a04',
     },
     messageText: {
         fontSize: 16,
         color: '#333',
+    },
+    timestamp: {
+        fontSize: 10,
+        color: '#ca8a04',
     },
     inputContainer: {
         flexDirection: 'row',
@@ -193,3 +179,5 @@ const styles = StyleSheet.create({
         borderRadius: 999,
     },
 });
+
+export default ChatRoomScreen;

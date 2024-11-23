@@ -1,118 +1,104 @@
 import React, { useState, useEffect } from 'react';
-import { Image, TouchableOpacity, StyleSheet, View, Text, FlatList, TextInput } from 'react-native';
+import { Image, TouchableOpacity, StyleSheet, View, Text, FlatList, TextInput, Alert } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
-import { db, auth } from '../config/firebase'; // Assuming the correct path for your firebase config
+import { db, auth } from '../config/firebase';
 
 export const NewChatScreen = ({ navigation }) => {
-  const [users, setUsers] = useState([]); // State to store the users data
-  const [filteredUsers, setFilteredUsers] = useState([]); // State to store filtered users for search
-  const [searchQuery, setSearchQuery] = useState(''); // State to track search input
-  const currentUser = auth.currentUser; // Get the current user
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const currentUser = auth.currentUser;
 
-  // Fetch users from Firestore
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'users'));
-        const usersData = querySnapshot.docs.map(doc => ({
-          id: doc.id, // Assuming 'id' is Firestore's document ID (this should match user UID if you are using the UID as the document ID)
-          ...doc.data(), // Get the document data
-        }));
+  const fetchUsers = async () => {
+    try {
+      const usersSnapshot = await getDocs(collection(db, 'users'));
+      const usersList = usersSnapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+        .filter(user => user.id !== currentUser?.uid);
 
-        // Filter out the current user based on their UID
-        const filteredUsers = usersData.filter(user => user.id !== currentUser.uid);
+      const sortedUsers = usersList.sort((a, b) => {
+        if (a.firstName.toLowerCase() === b.firstName.toLowerCase()) {
+          return a.lastName.toLowerCase().localeCompare(b.lastName.toLowerCase());
+        }
+        return a.firstName.toLowerCase().localeCompare(b.firstName.toLowerCase());
+      });
 
-        // Sort users by firstName and lastName in ascending order
-        const sortedUsers = filteredUsers.sort((a, b) => {
-          if (a.firstName.toLowerCase() < b.firstName.toLowerCase()) {
-            return -1;
-          }
-          if (a.firstName.toLowerCase() > b.firstName.toLowerCase()) {
-            return 1;
-          }
-          // If first names are the same, compare last names
-          if (a.lastName.toLowerCase() < b.lastName.toLowerCase()) {
-            return -1;
-          }
-          if (a.lastName.toLowerCase() > b.lastName.toLowerCase()) {
-            return 1;
-          }
-          return 0;
-        });
-
-        setUsers(sortedUsers); // Set the sorted users data to state
-        setFilteredUsers(sortedUsers); // Set the filtered users (initially the same as all users)
-      } catch (error) {
-        console.error('Error fetching users from Firestore:', error);
-      }
-    };
-
-    fetchUsers(); // Call the fetch function when the component mounts
-  }, [currentUser.uid]); // Re-run the effect if the current user changes
-
-  // Fallback avatar URL
-  const getAvatarUrl = (avatar) => {
-    return avatar || 'https://media.istockphoto.com/id/666545204/vector/default-placeholder-profile-icon.jpg?s=612x612&w=0&k=20&c=UGYk-MX0pFWUZOr5hloXDREB6vfCqsyS7SgbQ1-heY8=';
+      setUsers(sortedUsers);
+      setFilteredUsers(sortedUsers);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      Alert.alert('Error', 'Failed to load users. Please try again later.');
+    }
   };
 
-  // Filter users based on search query
-  const handleSearch = (text) => {
-    setSearchQuery(text);
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-    if (text) {
-      const filtered = users.filter(user =>
-        user.firstName.toLowerCase().includes(text.toLowerCase()) ||
-        user.lastName.toLowerCase().includes(text.toLowerCase())
-      );
-      setFilteredUsers(filtered); // Update filtered users
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredUsers(users);
+
     } else {
-      setFilteredUsers(users); // If search is cleared, show all users
+      const query = searchQuery.toLowerCase();
+      const filtered = users.filter(user =>
+        `${user.firstName} ${user.lastName}`.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
+      );
+      setFilteredUsers(filtered);
     }
+  }, [searchQuery, users]);
+
+  const getAvatarUrl = (avatar) => {
+    return avatar
+      ? { uri: avatar }
+      : require('../assets/images/profile-default.jpg'); // Path to your local placeholder image
   };
 
   const RenderNewConversationItem = ({ item, noBorder }) => (
     <TouchableOpacity
       style={[styles.container, noBorder ? {} : styles.borderBottom]}
-      onPress={() => navigation.navigate('ChatRoomScreen', { item: item })}   >
+      onPress={() => navigation.navigate('ChatRoomScreen', { item })}
+    >
       <Image
-        source={{ uri: getAvatarUrl(item?.avatar) }} // Use the fallback URL
+        source={getAvatarUrl(item?.avatar)}
         style={styles.avatar}
       />
       <View style={styles.textContainer}>
-        <View style={styles.headerContainer}>
-          <Text style={styles.nameText} numberOfLines={1}>
-            {item?.firstName} {item?.lastName}
-          </Text>
-        </View>
-        <Text style={styles.emailText}>
-          {item.email}
+        <Text style={styles.nameText} numberOfLines={1}>
+          {item?.firstName} {item?.lastName}
         </Text>
+        <Text style={styles.emailText}>{item.email}</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.screenContainer}>
-      {/* Search Bar */}
       <TextInput
         style={styles.searchInput}
-        placeholder="To:"
+        placeholder="Search by name or email..."
         value={searchQuery}
-        onChangeText={handleSearch}
+        onChangeText={setSearchQuery}
       />
-
-      {/* Users List */}
       <FlatList
-        data={filteredUsers} // Use the filtered users state
-        keyExtractor={(item) => item.id} // Using the Firestore document ID (which should match user UID)
+        data={filteredUsers}
+        keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => (
           <RenderNewConversationItem
             item={item}
-            index={index}
-            noBorder={index + 1 === filteredUsers.length} // Pass the noBorder prop
+            noBorder={index + 1 === filteredUsers.length}
           />
         )}
-        style={styles.flatList} // Style the FlatList to handle layout correctly
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No users found.</Text>
+          </View>
+        }
+        style={styles.flatList}
       />
     </View>
   );
@@ -139,41 +125,43 @@ const styles = StyleSheet.create({
   },
   container: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 12,
     paddingVertical: 16,
     paddingHorizontal: 16,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   borderBottom: {
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0', // Equivalent to 'neutral-200'
+    borderBottomColor: '#e0e0e0',
   },
   avatar: {
-    width: '20%', // You can adjust the width based on your design
-    aspectRatio: 1,
-    resizeMode: 'cover',
-    borderRadius: 50, // Rounded image
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
   textContainer: {
     flex: 1,
-    gap: 4,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    marginLeft: 12,
   },
   nameText: {
     fontSize: 16,
-    fontWeight: '600', // Equivalent to 'font-psemibold'
-    color: '#333', // Dark neutral color
-    textAlign: 'left',
+    fontWeight: '600',
+    color: '#333',
   },
   emailText: {
     fontSize: 14,
-    fontWeight: '400', // Equivalent to 'font-pregular'
-    color: '#A0A0A0', // Lighter neutral color
-    textAlign: 'left',
+    color: '#666',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  emptyText: {
+    color: '#999',
+    fontSize: 16,
   },
 });
+
+export default NewChatScreen;

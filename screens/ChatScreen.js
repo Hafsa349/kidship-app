@@ -1,27 +1,78 @@
-import React, { useLayoutEffect } from 'react';
-import { View, FlatList, Text, TouchableOpacity, SafeAreaView, Image, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, FlatList, Text, TouchableOpacity, SafeAreaView, Image, ActivityIndicator, StyleSheet } from 'react-native';
+import { collection, query, where, onSnapshot, doc, getDoc, orderBy, limit } from 'firebase/firestore';
+import { db, auth } from '../config/firebase';
+import { format } from 'date-fns';
 import AntDesign from '@expo/vector-icons/AntDesign';
 
-const conversations = [
-    {
-        id: '1',
-        firstName: 'Alice',
-        lastName: 'Smith',
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YXZhdGFyfGVufDB8fDB8fHww',
-        lastMessage: 'Hey, how are you?'
-    },
-    {
-        id: '2',
-        firstName: 'Bob',
-        lastName: 'Thomas',
-        avatar: 'https://plus.unsplash.com/premium_photo-1689539137236-b68e436248de?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bWFuJTIwYXZhdGFyfGVufDB8fDB8fHww',
-        lastMessage: 'Hey!'
-    },
-    // Add more contacts here
-];
-
 export const ChatScreen = ({ navigation }) => {
-    useLayoutEffect(() => {
+    const [conversations, setConversations] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const currentUser = auth.currentUser;
+
+    useEffect(() => {
+        if (!currentUser?.uid) return;
+
+        const unsubscribeRooms = onSnapshot(
+            query(collection(db, 'rooms'), where('participants', 'array-contains', currentUser?.uid)),
+            async (snapshot) => {
+                const rooms = snapshot.docs.map((roomDoc) => {
+                    const roomData = roomDoc.data();
+                    const otherUserId = roomData.participants.find((id) => id !== currentUser?.uid);
+                    return { id: roomDoc.id, otherUserId };
+                });
+
+                const conversationsMap = new Map();
+
+                rooms.forEach(({ id, otherUserId }) => {
+                    const messagesQuery = query(
+                        collection(db, 'rooms', id, 'messages'),
+                        orderBy('createdAt', 'desc'),
+                        limit(1)
+                    );
+
+                    const unsubscribeMessages = onSnapshot(messagesQuery, (messageSnapshot) => {
+                        const lastMessage = messageSnapshot.docs.length
+                            ? messageSnapshot.docs[0].data()
+                            : { text: 'Say Hi!', createdAt: null };
+
+                        getDoc(doc(collection(db, 'users'), otherUserId)).then((otherUserDoc) => {
+                            if (!otherUserDoc.exists()) return;
+
+                            const otherUser = otherUserDoc.data();
+
+                            conversationsMap.set(id, {
+                                id,
+                                ...otherUser,
+                                lastMessage: lastMessage.text,
+                                lastMessageTime: lastMessage?.createdAt?.seconds
+                                    ? new Date(lastMessage.createdAt.seconds * 1000)
+                                    : null,
+                            });
+
+                            setConversations(Array.from(conversationsMap.values()));
+                        });
+                    });
+
+                    // Cleanup the message listener
+                    return () => unsubscribeMessages();
+                });
+
+                setLoading(false);
+            }
+        );
+
+        return () => unsubscribeRooms();
+    }, [currentUser?.uid]);
+
+    const getAvatarUrl = (avatar) => {
+        return avatar
+            ? { uri: avatar }
+            : require('../assets/images/profile-default.jpg'); // Path to your local placeholder image
+    };
+
+    // Add header button to navigate to New Chat Screen
+    useEffect(() => {
         navigation.setOptions({
             headerRight: () => (
                 <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('NewChatScreen')}>
@@ -31,62 +82,88 @@ export const ChatScreen = ({ navigation }) => {
         });
     }, [navigation]);
 
-    const RenderConversationItem = ({ item, index, noBorder }) => (
-        <TouchableOpacity
-            style={[styles.itemContainer, noBorder ? {} : styles.borderBottom]}
-            onPress={() => navigation.navigate('ChatRoomScreen', { item })}    >
-            <Image
-                source={{ uri: item?.avatar }}
-                style={styles.avatar}
-            />
-            <View style={styles.textContainer}>
-                <View style={styles.headerContainer}>
-                    <Text
-                        style={styles.nameText}
-                        numberOfLines={1}
-                    >
-                        {item?.firstName} {item?.lastName}
-                    </Text>
-                    <Text style={styles.timeText}>
-                        {/* {renderTime()} */}
-                        Time
+    const RenderConversationItem = ({ item, noBorder }) => {
+        const serializedItem = {
+            ...item,
+            lastMessageTime: item?.lastMessageTime ? item.lastMessageTime.toISOString() : null,
+            roomId: item.id, // Include the roomId
+        };
+
+        return (
+            <TouchableOpacity
+                style={[styles.itemContainer, noBorder ? {} : styles.borderBottom]}
+                onPress={() => navigation.navigate('ChatRoomScreen', { item: serializedItem })}
+            >
+                <Image
+                    source={getAvatarUrl(item?.avatar)}
+                    style={styles.avatar}
+                />
+                <View style={styles.textContainer}>
+                    <View style={styles.headerContainer}>
+                        <Text style={styles.nameText} numberOfLines={1}>
+                            {item?.firstName} {item?.lastName}
+                        </Text>
+                        <Text style={styles.timeText}>
+                            {item?.lastMessageTime ? format(new Date(item.lastMessageTime), 'HH:mm') : ''}
+                        </Text>
+                    </View>
+                    <Text style={styles.lastMessageText} numberOfLines={1}>
+                        {item?.lastMessage}
                     </Text>
                 </View>
-                <Text
-                    style={styles.lastMessageText}
-                    numberOfLines={1}
-                >
-                    {/* {renderLastMessage()} */}
-                    Last Message
-                </Text>
-            </View>
-        </TouchableOpacity>
-    );
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <FlatList
-                data={conversations}
-                keyExtractor={(item) => item.id.toString()} // Assuming item.id is a unique value
-                renderItem={({ item, index }) => (
-                    <RenderConversationItem
-                        item={item}
-                        index={index}
-                        noBorder={index + 1 === conversations.length} // Pass the noBorder prop
+            <View style={{ flex: 1 }}>
+                {loading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#0000ff" />
+                    </View>
+                ) : (
+                    <FlatList
+                        data={conversations}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={({ item, index }) => (
+                            <RenderConversationItem
+                                item={item}
+                                index={index}
+                                noBorder={index + 1 === conversations.length}
+                            />
+                        )}
+                        ListEmptyComponent={
+                            !loading && (
+                                <View style={styles.emptyContainer}>
+                                    <Text style={styles.emptyText}>No messages yet.</Text>
+                                </View>
+                            )
+                        }
                     />
                 )}
-            />
+            </View>
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
     headerButton: {
-        height: 40, // Match the header's height (usually 44 or 48px for React Navigation's default header)
-        width: 40, // Make the button's width match the height to maintain a circular shape
+        marginRight: 16,
+    },
+    loadingContainer: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 16, // Add some margin on the right to position it better
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    emptyText: {
+        fontSize: 16,
+        color: '#999',
     },
     itemContainer: {
         flexDirection: 'row',
@@ -95,43 +172,37 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         backgroundColor: '#fff',
         paddingHorizontal: 16,
-        gap: 16
     },
     borderBottom: {
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0', // Equivalent to 'neutral-200'
+        borderBottomColor: '#e0e0e0',
     },
     avatar: {
         width: 60,
-        aspectRatio: 1,
-        objectFit: 'cover',
-        borderRadius: 50, // Rounded image
+        height: 60,
+        borderRadius: 30,
     },
     textContainer: {
         flex: 1,
-        gap: 4,
+        marginLeft: 16,
     },
     headerContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        width: '100%',
     },
     nameText: {
         fontSize: 16,
-        fontWeight: '600', // Equivalent to font-psemibold
-        color: '#1f1f1f',
-        width: '60%',
+        fontWeight: '600',
+        color: '#333',
+        flex: 1,
     },
     timeText: {
         fontSize: 14,
-        fontWeight: '400', // Equivalent to font-pregular
-        color: '#A0A0A0', // Neutral 500
+        color: '#999',
     },
     lastMessageText: {
         fontSize: 14,
-        fontWeight: '400',
-        color: '#A0A0A0', // Neutral 500
-        width: '60%',
+        color: '#666',
     },
 });

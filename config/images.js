@@ -3,5 +3,6 @@ export const Images = {
   logoIcon: require('../assets/images/logo-icon.png'),
   logoLong: require('../assets/images/logo-long.png'),
   logoName: require('../assets/images/logo-name.png'),
-  gifts: require('../assets/gifts.png')
+  gifts: require('../assets/gifts.png'),
+  avatarDefault: require('../assets/images/profile-default.jpg')
 };
