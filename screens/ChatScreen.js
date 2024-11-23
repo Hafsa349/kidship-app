@@ -34,7 +34,7 @@ export const ChatScreen = ({ navigation }) => {
     const RenderConversationItem = ({ item, index, noBorder }) => (
         <TouchableOpacity
             style={[styles.itemContainer, noBorder ? {} : styles.borderBottom]}
-            onPress={() => navigation.navigate('ChatRoomScreen', { contactId: item.id, contactName: item.firstName + ' ' + item.lastName })}    >
+            onPress={() => navigation.navigate('ChatRoomScreen', { item })}    >
             <Image
                 source={{ uri: item?.avatar }}
                 style={styles.avatar}

@@ -41,7 +41,11 @@ export const MoreScreen = ({ navigation }) => {
                     onPress: async () => {
                         try {
                             await signOut(auth);
-                            navigation.navigate('HomeScreen');
+                            // Navigate to the LoginScreen instead
+                            navigation.reset({
+                                index: 0,
+                                routes: [{ name: 'LoginScreen' }]  // Reset stack and navigate to LoginScreen
+                            });
                         } catch (error) {
                             console.log(error);
                         }
@@ -50,6 +54,7 @@ export const MoreScreen = ({ navigation }) => {
             ]
         );
     };
+    
 
     const navigateToScreen = (screen) => {
         navigation.navigate(screen, { navigationTo: 'goBack' });

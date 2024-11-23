@@ -33,7 +33,12 @@ export const AppStack = () => {
       <Screen component={HomeWorkScreen} name="HomeWorkScreen" />
       <Screen component={ChatScreen} name="ChatScreen" options={{ headerTitle: 'Messages' }} />
       <Screen component={NewChatScreen} name='NewChatScreen' options={{ headerTitle: 'New Message' }} />
-      <Screen component={ChatRoomScreen} name="ChatRoomScreen" options={({ route }) => ({ title: route.params.contactName })} />
+      <Screen component={ChatRoomScreen} name="ChatRoomScreen" options={({ route }) => {
+    const { firstName, lastName } = route.params.item;
+    return {
+      title: `${firstName} ${lastName}`
+    };
+  }} />
       <Screen component={CalendarScreen} name="CalendarScreen" options={{ headerTitle: 'Events' }}/>
       <Screen component={CreatePostScreen} name="CreatePostScreen" />
       <Screen component={PostDetailScreen} name="PostDetailScreen" options={{ headerShown: true, headerTitle: 'Post Detail' }}/>

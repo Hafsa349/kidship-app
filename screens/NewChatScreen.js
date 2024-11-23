@@ -8,7 +8,7 @@ export const NewChatScreen = ({ navigation }) => {
   const [filteredUsers, setFilteredUsers] = useState([]); // State to store filtered users for search
   const [searchQuery, setSearchQuery] = useState(''); // State to track search input
   const currentUser = auth.currentUser; // Get the current user
-console.log(currentUser.uid)
+
   // Fetch users from Firestore
   useEffect(() => {
     const fetchUsers = async () => {
@@ -73,7 +73,7 @@ console.log(currentUser.uid)
   const RenderNewConversationItem = ({ item, noBorder }) => (
     <TouchableOpacity
       style={[styles.container, noBorder ? {} : styles.borderBottom]}
-      onPress={() => navigation.navigate('ChatRoomScreen', { contactId: item.id, contactName: item.firstName + ' ' + item.lastName })}    >
+      onPress={() => navigation.navigate('ChatRoomScreen', { item: item })}   >
       <Image
         source={{ uri: getAvatarUrl(item?.avatar) }} // Use the fallback URL
         style={styles.avatar}
@@ -96,7 +96,7 @@ console.log(currentUser.uid)
       {/* Search Bar */}
       <TextInput
         style={styles.searchInput}
-        placeholder="Search a contact..."
+        placeholder="To:"
         value={searchQuery}
         onChangeText={handleSearch}
       />
