@@ -1,3 +1,4 @@
+//TabNavigator.js
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React, { useState, useEffect, useContext } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -10,7 +11,7 @@ import { Icon } from '../components';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { AuthStack, AppStack, MoreAppStack } from '../navigation';
-import { CalendarScreen, CreatePostScreen, HomeWorkScreen } from '../screens';
+import { CalendarScreen, CreatePostScreen, HomeWorkScreen, ReportScreen } from '../screens';
 import { fetchUserDetails } from '../services';
 
 // Create bottom tab navigator
@@ -82,8 +83,8 @@ export const TabNavigator = () => {
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
-                <Tab.Screen name="Homework" component={user ? HomeWorkScreen : AuthStack} options={{
-                    tabBarLabel: 'Homework',
+                <Tab.Screen name="Child Progress" component={user ? ReportScreen : AuthStack} options={{
+                    tabBarLabel: 'Child Progress',
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,
                     tabBarIcon: ({ focused }) => (
@@ -93,7 +94,7 @@ export const TabNavigator = () => {
                 }} />
    
                 {allowEditing &&
-                    <Tab.Screen name="Post" component={user ? CreatePostScreen : AuthStack} options={{
+                    <Tab.Screen name="Create Post" component={user ? CreatePostScreen : AuthStack} options={{
                         tabBarLabel: 'Post',
                         tabBarActiveTintColor: Colors.mediumGray,
                         tabBarInactiveTintColor: Colors.mediumGray,
@@ -103,7 +104,7 @@ export const TabNavigator = () => {
                         ),
                     }} />
                 }
-                <Tab.Screen name="Calendar" component={user ? CalendarScreen : AuthStack} options={{
+                <Tab.Screen name="Events" component={user ? CalendarScreen : AuthStack} options={{
                     tabBarLabel: 'Calendar',
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,

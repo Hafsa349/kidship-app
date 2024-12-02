@@ -1,4 +1,4 @@
-// AppStack.js
+//MoreNavigationStack.js
 import { LocationScreen, MyAccountScreen, LoginScreen, MoreScreen, PrivacyPolicyScreen, TermsAndConditionScreen } from '../screens';
 import React, {  } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';

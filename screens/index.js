@@ -13,8 +13,9 @@ import { CreatePostScreen } from './CreatePostScreen'
 import { NotificationScreen } from './NotificationScreen'
 import { PostDetailScreen } from './PostDetailScreen'
 import { ReportScreen } from './ReportScreen'
-import { ConversationScreen } from './ConversationScreen'
-import { MessageDetailScreen } from './MessageDetailScreen'
+import { ChatScreen } from './ChatScreen'
+import { ChatRoomScreen } from './ChatRoomScreen'
+import { NewChatScreen } from './NewChatScreen';
 
 
 export {
@@ -33,6 +34,7 @@ export {
     NotificationScreen,
     PostDetailScreen,
     ReportScreen,
-    ConversationScreen,
-    MessageDetailScreen
+    ChatScreen,
+    ChatRoomScreen,
+    NewChatScreen
 };

@@ -1,16 +1,17 @@
+// Inside RootNavigator.js
+
 import { NavigationContainer } from '@react-navigation/native';
 import { TabNavigator } from './TabNavigator';
-
+import { AuthStack } from '../navigation';
 import React, { useEffect, useContext } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { AuthenticatedUserContext } from '../providers';
 import { auth } from '../config';
-import { AuthStack } from '../navigation';
+
 export const RootNavigator = () => {
   const { user, setUser } = useContext(AuthenticatedUserContext);
 
   useEffect(() => {
-    // onAuthStateChanged returns an unsubscriber
     const unsubscribeAuthStateChanged = onAuthStateChanged(
       auth,
       authenticatedUser => {
@@ -18,7 +19,6 @@ export const RootNavigator = () => {
       }
     );
 
-    // unsubscribe auth listener on unmount
     return unsubscribeAuthStateChanged;
   }, [setUser]);
 
@@ -26,8 +26,9 @@ export const RootNavigator = () => {
     <NavigationContainer>
       {user && user.emailVerified ? (
         <TabNavigator />
-      ) : <AuthStack />}
-
+      ) : (
+        <AuthStack />
+      )}
     </NavigationContainer>
   );
 };
