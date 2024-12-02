@@ -4,22 +4,21 @@ import React, { useState, useEffect, useContext } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { StyleSheet } from 'react-native';
 
-import { AuthenticatedUserContext } from '../providers';
+import { AuthenticatedUserContext, UserContext } from '../providers';
 import { Colors, auth } from '../config';
 import { allowedEditingRoles } from '../utils/constants';
 import { Icon } from '../components';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { AuthStack, AppStack, MoreAppStack } from '../navigation';
-import { CalendarScreen, CreatePostScreen, HomeWorkScreen, ReportScreen } from '../screens';
-import { fetchUserDetails } from '../services';
+import { CalendarScreen, CreatePostScreen, ReportScreen } from '../screens';
 
 // Create bottom tab navigator
 const Tab = createBottomTabNavigator();
 export const TabNavigator = () => {
     const { user, setUser } = useContext(AuthenticatedUserContext);
     const [isLoading, setIsLoading] = useState(true);
-    const [userDetail, setUserDetail] = useState({});
+    const [userDetail, setUserDetail] = useState(UserContext);
 
     useEffect(() => {
         // onAuthStateChanged returns an unsubscriber
@@ -34,23 +33,6 @@ export const TabNavigator = () => {
         // unsubscribe auth listener on unmount
         return unsubscribeAuthStateChanged;
     }, [setUser]);
-
-    useEffect(() => {
-        const fetchUserData = async () => {
-            console.log(user)
-            const validUser = user && user.emailVerified && user.uid;
-            if (validUser) {
-                try {
-                    const userDetails = await fetchUserDetails(user.uid);
-                    setUserDetail(userDetails);
-                } catch (error) {
-                    console.error('Error fetching user details:', error);
-                }
-            }
-        };
-
-        fetchUserData();
-    }, [user]);
 
     // Decide which stack to show based on user authentication status
     const getTabScreen = () => {

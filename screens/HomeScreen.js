@@ -3,7 +3,7 @@ import { Dimensions, StyleSheet, View, ActivityIndicator, Text, Image, FlatList,
 import { Colors, auth } from '../config';
 import { HeaderComponent } from '../components';
 import { onAuthStateChanged } from 'firebase/auth';
-import { AuthenticatedUserContext, SchoolContext } from '../providers';
+import { AuthenticatedUserContext, SchoolContext, UserContext } from '../providers';
 import { fetchUserDetailsByIds, fetchUserDetails, getPosts, toggleLike, getLikes, getComments } from '../services';
 import { formatDateToDays } from '../utils';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -15,21 +15,22 @@ export const HomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [likeLoading, setLikeLoading] = useState({});
   const { user, setUser } = useContext(AuthenticatedUserContext);
-  const { schoolDetail, setSchoolDetail } = useContext(SchoolContext);
-  const [userDetail, setUserDetail] = useState({});
+  const { setSchoolDetail } = useContext(SchoolContext);
+  const [ userDetail, setUserDetail] = useContext(UserContext);
   const [schoolId, setSchoolId] = useState('');
 
   // Fetch user details and populate schoolId
   useEffect(() => {
     const fetchUserData = async () => {
-      console.log('User object:', user); // Debugging
+      console.log('2'); // Debugging
+
       if (user && user.uid) {
         try {
-          const userDetails = await fetchUserDetails(user.uid);
-          console.log('Fetched user details:', userDetails); // Debugging
-          setSchoolId(userDetails.schoolId);
-          setSchoolDetail(userDetails.schoolId);
-          setUserDetail(userDetails);
+          const data = await fetchUserDetails(user.uid);
+          console.log('Fetched user details:', data); // Debugging
+          setSchoolId(data.schoolId);
+          setSchoolDetail(data.schoolId);
+          setUserDetail(data);
         } catch (error) {
           console.error('Error fetching user details:', error);
         }

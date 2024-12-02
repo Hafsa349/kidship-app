@@ -167,7 +167,7 @@ export const SignupScreen = ({ navigation }) => {
                                     keyExtractor: (_, index) => index.toString(),
                                     renderItem: ({ item }) => (
                                         <Text
-                                            style={{ padding: 14, fontSize: 12 }}
+                                            style={{ padding: 18, fontSize: 12 }}
                                             onPress={() => handleSchoolSelection(item, setFieldValue)}
                                         >
                                             {item}
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
     },
     autocompleteInput: {
-        height: 40,
+        height: 46,
         paddingHorizontal: 10,
         paddingLeft: 14,
         borderRadius: 20,

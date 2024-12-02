@@ -2,7 +2,7 @@ import React from 'react';
 import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './navigation/RootNavigator';
-import { AuthenticatedUserProvider, SchoolProvider } from './providers';
+import { AuthenticatedUserProvider, SchoolProvider, UserProvider } from './providers';
 
 const App = () => {
   return (
@@ -10,7 +10,9 @@ const App = () => {
       <StatusBar barStyle="light-content" />
       <SafeAreaProvider>
         <SchoolProvider>
-          <RootNavigator />
+          <UserProvider>
+            <RootNavigator />
+          </UserProvider>
         </SchoolProvider>
       </SafeAreaProvider>
     </AuthenticatedUserProvider>
