@@ -135,12 +135,12 @@ export const SignupScreen = ({ navigation }) => {
 
                 <Formik
                     initialValues={{
-                        email: 'shazz03+2@gmail.com',
-                        password: 'Test1234',
-                        confirmPassword: 'Test1234',
-                        firstName: 'Test',
-                        lastName: 'Hafs',
-                        phoneNumber: '0413895030',
+                        email: '',
+                        password: '',
+                        confirmPassword: '',
+                        firstName: '',
+                        lastName: '',
+                        phoneNumber: '',
                         dateOfBirth: '',
                         schoolName: '',
                     }}
@@ -161,7 +161,7 @@ export const SignupScreen = ({ navigation }) => {
                                 data={schoolSuggestions}
                                 defaultValue={values.schoolName}
                                 onChangeText={(text) => handleSchoolNameChange(text, setFieldValue)}
-                                placeholder="Enter School Name"
+                                placeholder="Start typing school name"
                                 style={styles.autocompleteInput}
                                 flatListProps={{
                                     keyExtractor: (_, index) => index.toString(),
