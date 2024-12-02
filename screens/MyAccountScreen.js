@@ -26,12 +26,13 @@ export const MyAccountScreen = ({ route, navigation }) => {
   }, [setUser]);
 
   useEffect(() => {
-    if (user && user.uid) {
+    if (user && user.emailVerified && user.uid) {
       fetchUser();
     }
   }, [user]);
 
   const fetchUser= async () => {
+
     try {
       console.log('Fetching user details', user.uid);
       const docRef = await fetchUserDetails(user.uid);

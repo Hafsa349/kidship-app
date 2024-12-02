@@ -31,7 +31,7 @@ export const HeaderComponent = ({ navigation, title, navigationTo, authUser = nu
                 </View>
                 <View style={styles.headerRight}>
                     <>
-                        {user &&
+                        {user && user.emailVerified && 
                             <><TouchableOpacity onPress={() => navigation.navigate('ReportScreen')}>
                                 <AntDesign name='smileo' size={30} color='#f5b22d' />
                             </TouchableOpacity>

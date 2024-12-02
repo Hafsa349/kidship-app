@@ -36,7 +36,9 @@ export const TabNavigator = () => {
 
     useEffect(() => {
         const fetchUserData = async () => {
-            if (user && user.uid) {
+            console.log(user)
+            const validUser = user && user.emailVerified && user.uid;
+            if (validUser) {
                 try {
                     const userDetails = await fetchUserDetails(user.uid);
                     setUserDetail(userDetails);

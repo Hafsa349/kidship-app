@@ -24,7 +24,7 @@ export const RootNavigator = () => {
 
   return (
     <NavigationContainer>
-      {user ? (
+      {user && user.emailVerified ? (
         <TabNavigator />
       ) : <AuthStack />}
 

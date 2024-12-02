@@ -69,7 +69,7 @@ export const MoreScreen = ({ navigation }) => {
                             <Text style={styles.arrow}>{">"}</Text>
                         </TouchableOpacity>
                     ))}
-                    {user && (
+                    {user && user.emailVerified && (
                         <View style={styles.signOutSection}>
                             <Button style={styles.button} onPress={handleSignOut}>
                                 <Text style={styles.buttonText}>Sign Out</Text>

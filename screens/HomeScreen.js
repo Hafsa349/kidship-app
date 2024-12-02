@@ -4,7 +4,7 @@ import { Colors, auth } from '../config';
 import { HeaderComponent } from '../components';
 import { onAuthStateChanged } from 'firebase/auth';
 import { AuthenticatedUserContext } from '../providers';
-import { fetchUserDetailsByIds, getPosts, toggleLike, getLikes, getComments } from '../services'; // Add getComments service
+import { fetchUserDetailsByIds, fetchUserDetails, getPosts, toggleLike, getLikes, getComments } from '../services';
 import { formatDateToDays } from '../utils';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -13,32 +13,60 @@ const screenWidth = Dimensions.get('window').width;
 export const HomeScreen = ({ navigation }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [likeLoading, setLikeLoading] = useState({}); // Track loading per post
+  const [likeLoading, setLikeLoading] = useState({});
   const { user, setUser } = useContext(AuthenticatedUserContext);
+  const [userDetail, setUserDetail] = useState({});
+  const [schoolId, setSchoolId] = useState('');
 
+  // Fetch user details and populate schoolId
+  useEffect(() => {
+    const fetchUserData = async () => {
+      console.log('User object:', user); // Debugging
+      if (user && user.uid) {
+        try {
+          const userDetails = await fetchUserDetails(user.uid);
+          console.log('Fetched user details:', userDetails); // Debugging
+          setSchoolId(userDetails.schoolId);
+          setUserDetail(userDetails);
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
+  // Fetch posts based on schoolId
   useEffect(() => {
     const fetchData = async () => {
+      if (!schoolId) {
+        console.log('No schoolId available yet.');
+        return;
+      }
       setLoading(true);
       try {
-        const postData = await getPosts();
+        console.log('School Id', schoolId); // Debugging
+        const postData = await getPosts(schoolId);
+        console.log('Fetched posts:', postData); // Debugging
         const userIds = postData.map(post => post.authorId).filter(id => id);
         const uniqueUserIds = [...new Set(userIds)];
+        console.log(uniqueUserIds,schoolId);
         const authorDetailsArray = await fetchUserDetailsByIds(uniqueUserIds);
 
         const authorDetailsMap = Object.fromEntries(
           authorDetailsArray.map(user => [user.uid, user])
         );
 
-        // Fetch comment counts for each post
         const postsWithCommentCounts = await Promise.all(postData.map(async (post) => {
           const postLikes = await getLikes(post.id);
-          const postComments = await getComments(post.id); // Fetch comments for the post
-          
+          const postComments = await getComments(post.id);
+
           return {
             ...post,
             likes: postLikes.length,
             isLiked: postLikes.includes(user.uid),
-            commentsCount: postComments.length, // Store comment count
+            commentsCount: postComments.length,
             authorDetails: authorDetailsMap[post.authorId] || {
               name: 'Unknown',
               image_url: 'unknown',
@@ -58,20 +86,24 @@ export const HomeScreen = ({ navigation }) => {
       }
       setLoading(false);
     };
-    fetchData();
-  }, []);
 
+    fetchData();
+  }, [schoolId]);
+
+  // Listen for authentication changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, authenticatedUser => {
+      console.log('Authentication state changed:', authenticatedUser); // Debugging
       setUser(authenticatedUser);
     });
 
     return () => unsubscribe();
   }, [setUser]);
 
+  // Handle like toggling
   const handleLike = async (postId) => {
     try {
-      setLikeLoading(prev => ({ ...prev, [postId]: true })); // Start loading for specific post
+      setLikeLoading(prev => ({ ...prev, [postId]: true }));
       const postIndex = posts.findIndex(post => post.id === postId);
       const isCurrentlyLiked = posts[postIndex].isLiked;
 
@@ -89,7 +121,7 @@ export const HomeScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Error toggling like:', error);
     } finally {
-      setLikeLoading(prev => ({ ...prev, [postId]: false })); // Stop loading for specific post
+      setLikeLoading(prev => ({ ...prev, [postId]: false }));
     }
   };
 

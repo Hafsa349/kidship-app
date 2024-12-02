@@ -75,80 +75,98 @@ export const PostDetailScreen = ({ navigation, route }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        <View style={styles.container}>
-          <View style={styles.authorContainer}>
-            <Image 
-              source={{ uri: post.authorDetails?.image_url || 'https://path/to/default-avatar.png' }} 
-              style={styles.authorImage} 
-            />
-            <Text style={styles.authorName}>{post.authorDetails?.firstName || 'Unknown'}</Text>
-          </View>
-          <Image source={{ uri: post.image_url }} style={styles.image} />
-
-          <View style={styles.content}>
-            <View style={styles.interactionContainer}>
-              <TouchableOpacity onPress={handleLike} style={styles.likesContainer}>
-                {loading ? (
-                  <ActivityIndicator size="small" color={Colors.primary} style={styles.activityIndicator} />
-                ) : (
-                  <Icon name={isLiked ? "heart" : "heart-outline"} size={20} color={Colors.brandYellow} />
-                )}
-                <Text style={styles.likes}>{likes} {likes === 1 ? 'like' : 'likes' }</Text>
-              </TouchableOpacity>
-              <View style={styles.commentsContainer}>
-                <Icon name="chatbubble-outline" size={16} color={Colors.brandYellow} />
-                <Text style={styles.comments}>{comments.length} comments</Text>
-              </View>
-            </View>
-            <Text style={styles.postTime}>{post.timeAgo}</Text>
-            <Text style={styles.postText}>{post.text}</Text>
-          </View>
-
-          {/* Comments Section */}
-
-          <Text style={styles.title}>Comments</Text>
-          <View style={styles.commentsList}>
-            {comments.map((comment, index) => {
-              const author = authorDetailsMap[comment.authorId]; // Get the author from the map
-              return (
-                <View key={index} style={styles.comment}>
-                  <View style={styles.commentHeader}>
-                    <Image
-                      source={{ uri: author?.image_url || 'https://path/to/default-avatar.png' }} 
-                      style={styles.commentUserImage}
-                    />
-                    <Text style={styles.commentUserName}>{author?.firstName || ''}</Text>
-                  </View>
-                  <Text style={styles.commentText}>{comment.text}</Text>
+    <>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView contentContainerStyle={styles.contentContainer}>
+          <View style={styles.container}>
+            <View style={styles.authorContainer}>
+              {post.authorDetails?.image_url ? (
+                <Image
+                  source={{ uri: post.authorDetails.image_url }}
+                  style={styles.authorImage}
+                />
+              ) : (
+                <View style={styles.initialsContainer}>
+                  <Text style={styles.initialsText}>
+                    {post.authorDetails?.firstName?.[0] || ''}{post.authorDetails?.lastName?.[0] || ''}
+                  </Text>
                 </View>
-              );
-            })}
-          </View>
-        </View>
-      </ScrollView>
+              )}
+              <Text style={styles.authorName}>{post.authorDetails?.firstName || 'Unknown'}</Text>
+            </View>
+            <Image source={{ uri: post.image_url }} style={styles.image} />
 
-      {/* Sticky Comment Section */}
-      <View style={styles.commentSection}>
-        <TextInput
-          style={styles.commentInput}
-          placeholder="Add a comment..."
-          value={comment}
-          onChangeText={setComment}
-        />
-        <TouchableOpacity onPress={handleCommentSubmit} style={styles.commentButton}>
-          {loading ? (
-            <ActivityIndicator size="small" color={Colors.primary} style={styles.activityIndicator} />
-          ) : (
-            <Icon name="send" size={16} color={Colors.brandYellow} />
-          )}
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+            <View style={styles.content}>
+              <View style={styles.interactionContainer}>
+                <TouchableOpacity onPress={handleLike} style={styles.likesContainer}>
+                  {loading ? (
+                    <ActivityIndicator size="small" color={Colors.primary} style={styles.activityIndicator} />
+                  ) : (
+                    <Icon name={isLiked ? "heart" : "heart-outline"} size={20} color={Colors.brandYellow} />
+                  )}
+                  <Text style={styles.likes}>{likes} {likes === 1 ? 'like' : 'likes'}</Text>
+                </TouchableOpacity>
+                <View style={styles.commentsContainer}>
+                  <Icon name="chatbubble-outline" size={16} color={Colors.brandYellow} />
+                  <Text style={styles.comments}>{comments.length} comments</Text>
+                </View>
+              </View>
+              <Text style={styles.postTime}>{post.timeAgo}</Text>
+              <Text style={styles.postText}>{post.text}</Text>
+            </View>
+
+            {/* Comments Section */}
+
+            <Text style={styles.title}>Comments</Text>
+            <View style={styles.commentsList}>
+              {comments.map((comment, index) => {
+                const author = authorDetailsMap[comment.authorId]; // Get the author from the map
+                return (
+                  <View key={index} style={styles.comment}>
+                    <View style={styles.commentHeader}>
+                      {author?.image_url ? (
+                        <Image
+                          source={{ uri: author.image_url }}
+                          style={styles.commentUserImage}
+                        />
+                      ) : (
+                        <View style={styles.initialsContainer}>
+                          <Text style={styles.initialsText}>
+                            {author?.firstName?.[0] || ''}{author?.lastName?.[0] || ''}
+                          </Text>
+                        </View>
+                      )}
+                      <Text style={styles.commentUserName}>{author?.firstName || ''}</Text>
+                    </View>
+                    <Text style={styles.commentText}>{comment.text}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Sticky Comment Section */}
+        <View style={styles.commentSection}>
+          <TextInput
+            style={styles.commentInput}
+            placeholder="Add a comment..."
+            value={comment}
+            onChangeText={setComment}
+          />
+          <TouchableOpacity onPress={handleCommentSubmit} style={styles.commentButton}>
+            {loading ? (
+              <ActivityIndicator size="small" color={Colors.primary} style={styles.activityIndicator} />
+            ) : (
+              <Icon name="send" size={16} color={Colors.brandYellow} />
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </>
   );
 };
 
@@ -280,6 +298,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.darkGrey,
     marginLeft: 40,
+  },
+  initialsContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.grey,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  initialsText: {
+    color: Colors.white,
+    fontWeight: 'bold',
+    fontSize: 18,
   },
   activityIndicator: {
     marginLeft: 10,

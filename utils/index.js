@@ -16,6 +16,7 @@ export const signupValidationSchema = Yup.object().shape({
     .required('Confirm Password is required.'),
   firstName: Yup.string().required().min(3).label('First Name'),
   lastName: Yup.string().required().min(3).label('Last Name'),
+  //schoolName: Yup.string().required().label('School Name1'),
   phoneNumber: Yup.string().matches(phoneRegExp, 'Invalid Australian Phone number, eg: 04XXXXXXXXX')
 });
 

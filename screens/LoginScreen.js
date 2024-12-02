@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Formik } from 'formik';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -22,7 +22,12 @@ export const LoginScreen = ({ route, navigation }) => {
     try {
       const { email, password } = values;
       const result = await signInWithEmailAndPassword(auth, email, password);
-      navigation.navigate(navigateBackTo ? navigateBackTo : "HomeScreen");
+      if (result?.user?.emailVerified) {
+        navigation.navigate(navigateBackTo ? navigateBackTo : "HomeScreen");
+      }
+      else {
+        Alert.alert('', 'Email address not verified.', [{ text: 'Close' }]);
+      }
     } catch (error) {
       setErrorState("Invalid email or password");
     } finally {
@@ -35,15 +40,15 @@ export const LoginScreen = ({ route, navigation }) => {
       <View isSafe style={styles.container}>
         <KeyboardAwareScrollView enableOnAndroid={true}>
           <View style={styles.topContainer}>
-          <Logo uri={Images.logoLong} width={220} height={87} />
+            <Logo uri={Images.logoLong} width={220} height={87} />
           </View>
           <View style={styles.innerContainer}>
             <Text style={styles.screenTitle}>Log in to KidShip</Text>
           </View>
           <Formik
             initialValues={{
-              email: 'hafsa123@gmail.com',
-              password: 'hafsa123'
+              email: 'shazz03+2@gmail.com',
+              password: 'Test1234'
             }}
             validationSchema={loginValidationSchema}
             onSubmit={values => handleLogin(values)}
