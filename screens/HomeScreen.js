@@ -3,7 +3,7 @@ import { Dimensions, StyleSheet, View, ActivityIndicator, Text, Image, FlatList,
 import { Colors, auth } from '../config';
 import { HeaderComponent } from '../components';
 import { onAuthStateChanged } from 'firebase/auth';
-import { AuthenticatedUserContext } from '../providers';
+import { AuthenticatedUserContext, SchoolContext } from '../providers';
 import { fetchUserDetailsByIds, fetchUserDetails, getPosts, toggleLike, getLikes, getComments } from '../services';
 import { formatDateToDays } from '../utils';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -15,6 +15,7 @@ export const HomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [likeLoading, setLikeLoading] = useState({});
   const { user, setUser } = useContext(AuthenticatedUserContext);
+  const { schoolDetail, setSchoolDetail } = useContext(SchoolContext);
   const [userDetail, setUserDetail] = useState({});
   const [schoolId, setSchoolId] = useState('');
 
@@ -27,6 +28,7 @@ export const HomeScreen = ({ navigation }) => {
           const userDetails = await fetchUserDetails(user.uid);
           console.log('Fetched user details:', userDetails); // Debugging
           setSchoolId(userDetails.schoolId);
+          setSchoolDetail(userDetails.schoolId);
           setUserDetail(userDetails);
         } catch (error) {
           console.error('Error fetching user details:', error);
@@ -46,14 +48,19 @@ export const HomeScreen = ({ navigation }) => {
       }
       setLoading(true);
       try {
-        console.log('School Id', schoolId); // Debugging
+        console.log('School Id', schoolId);
         const postData = await getPosts(schoolId);
-        console.log('Fetched posts:', postData); // Debugging
+        console.log('Fetched posts:', !postData && postData.length == 0);
+        if (postData.length == 0) {
+          console.log('Fetched posts not found for School id:', schoolId);
+          setLoading(false);
+          return;
+        }
+        console.log('Fetched posts:', postData);
         const userIds = postData.map(post => post.authorId).filter(id => id);
         const uniqueUserIds = [...new Set(userIds)];
-        console.log(uniqueUserIds,schoolId);
-        const authorDetailsArray = await fetchUserDetailsByIds(uniqueUserIds);
-
+        console.log(uniqueUserIds, schoolId);
+        const authorDetailsArray = uniqueUserIds.length > 0 ? (await fetchUserDetailsByIds(uniqueUserIds)) : [];
         const authorDetailsMap = Object.fromEntries(
           authorDetailsArray.map(user => [user.uid, user])
         );
@@ -130,46 +137,48 @@ export const HomeScreen = ({ navigation }) => {
     const createdAt = formatDateToDays(item.createdAt);
 
     return (
-      <TouchableOpacity
-        style={styles.postCard}
-        onPress={() => navigation.navigate('PostDetailScreen', { post: item, uid: user.uid })}
-      >
-        {displayName && (
-          <View style={styles.postHeader}>
-            <Image
-              source={{ uri: item.authorDetails?.image_url || 'https://path/to/dummy-avatar.png' }}
-              style={styles.avatar}
-            />
-            <View style={styles.headerContent}>
-              <Text style={styles.authorName}>{displayName}</Text>
-              <Text style={styles.createdAt}>{createdAt}</Text>
+      <>
+        <TouchableOpacity
+          style={styles.postCard}
+          onPress={() => navigation.navigate('PostDetailScreen', { post: item, uid: user.uid })}
+        >
+          {displayName && (
+            <View style={styles.postHeader}>
+              <Image
+                source={{ uri: item.authorDetails?.image_url || 'https://path/to/dummy-avatar.png' }}
+                style={styles.avatar}
+              />
+              <View style={styles.headerContent}>
+                <Text style={styles.authorName}>{displayName}</Text>
+                <Text style={styles.createdAt}>{createdAt}</Text>
+              </View>
+            </View>
+          )}
+          <Image source={{ uri: item.image_url }} style={styles.postImage} />
+          <View style={styles.interactionContainer}>
+            <TouchableOpacity onPress={() => handleLike(item.id)} style={styles.likesContainer}>
+              {likeLoading[item.id] ? (
+                <ActivityIndicator size="small" color={Colors.orange} />
+              ) : (
+                <Icon
+                  name={item.isLiked ? "heart" : "heart-outline"}
+                  size={16}
+                  color={Colors.brandYellow}
+                />
+              )}
+              <Text style={styles.likes}>{item.likes} {item.likes === 1 ? 'like' : 'likes'}</Text>
+            </TouchableOpacity>
+            <View style={styles.commentsContainer}>
+              <Icon name="chatbubble-outline" size={20} color={Colors.primary} />
+              <Text style={styles.comments}>{item.commentsCount} {item.commentsCount === 1 ? 'comment' : 'comments'}</Text>
             </View>
           </View>
-        )}
-        <Image source={{ uri: item.image_url }} style={styles.postImage} />
-        <View style={styles.interactionContainer}>
-          <TouchableOpacity onPress={() => handleLike(item.id)} style={styles.likesContainer}>
-            {likeLoading[item.id] ? (
-              <ActivityIndicator size="small" color={Colors.orange} />
-            ) : (
-              <Icon
-                name={item.isLiked ? "heart" : "heart-outline"}
-                size={16}
-                color={Colors.brandYellow}
-              />
-            )}
-            <Text style={styles.likes}>{item.likes} {item.likes === 1 ? 'like' : 'likes' }</Text>
-          </TouchableOpacity>
-          <View style={styles.commentsContainer}>
-            <Icon name="chatbubble-outline" size={20} color={Colors.primary} />
-            <Text style={styles.comments}>{item.commentsCount} {item.commentsCount === 1 ? 'comment' : 'comments'}</Text>
-          </View>
-        </View>
-        <Text style={styles.postText}>
-          {item.text.length > 250 ? item.text.slice(0, 250) + '...' : item.text}
-        </Text>
-        <Text style={styles.postTime}>{item.timeAgo}</Text>
-      </TouchableOpacity>
+          <Text style={styles.postText}>
+            {item.text.length > 250 ? item.text.slice(0, 250) + '...' : item.text}
+          </Text>
+          <Text style={styles.postTime}>{item.timeAgo}</Text>
+        </TouchableOpacity>
+      </>
     );
   };
 
@@ -187,12 +196,21 @@ export const HomeScreen = ({ navigation }) => {
   return (
     <>
       <HeaderComponent title="" navigation={navigation} />
-      <FlatList
-        data={posts}
-        renderItem={renderPost}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.container}
-      />
+
+      {posts?.length > 0 &&
+        <FlatList
+          data={posts}
+          renderItem={renderPost}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.container}
+        />
+
+      }
+      {posts?.length == 0 &&
+        <View style={styles.noPosts}>
+          <Text style={styles.comments}>No posts found</Text>
+        </View>
+      }
     </>
   );
 };
@@ -281,6 +299,12 @@ const styles = StyleSheet.create({
   postTime: {
     fontSize: 12,
     color: Colors.grey,
+  },
+  noPosts: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
   },
 });
 

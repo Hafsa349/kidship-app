@@ -79,11 +79,11 @@ export const fetchUserByPhoneNumber = async (phoneNumber) => {
         if (!querySnapshot.empty) {
             return querySnapshot.docs[0].data(); // Return the first matched document
         } else {
-            console.warn(`No user found with phone number ${phoneNumber} in school ${schoolId}.`);
+            console.warn(`No user found with phone number ${phoneNumber}.`);
             return null;
         }
     } catch (error) {
-        console.error(`Error fetching user by phone number in school ${schoolId}:`, error);
+        console.error(`Error fetching user by phone number in school`, error);
         return null;
     }
 };
