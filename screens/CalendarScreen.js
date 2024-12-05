@@ -33,9 +33,15 @@ export const CalendarScreen = ({ navigation }) => {
         if (!schoolDetail) return;
         try {
             const fetchedEvents = await getEvents(schoolDetail);
+
             const formattedEvents = {};
             fetchedEvents.forEach((event) => {
                 const { date, ...rest } = event;
+                if (!date) {
+                    console.error('Event is missing a date:', event);
+                    return; // Skip events without a date
+                }
+
                 if (!formattedEvents[date]) {
                     formattedEvents[date] = [];
                 }
@@ -47,9 +53,17 @@ export const CalendarScreen = ({ navigation }) => {
         }
     };
 
+
+
     useEffect(() => {
+        setEvents({});
         fetchEvents();
     }, [schoolDetail]);
+
+    useEffect(() => {
+        console.log('Fetched Events:', events);
+    }, [events]);
+
 
     const handleAddEvent = async () => {
         if (!newEvent.title || !newEvent.time || !newEvent.description) {
@@ -121,8 +135,8 @@ export const CalendarScreen = ({ navigation }) => {
                     selectedType === 'Event'
                         ? '#92D4F2'
                         : selectedType === 'Homework'
-                        ? '#A1D871'
-                        : '#f4b22e';
+                            ? '#A1D871'
+                            : '#f4b22e';
                 marked[date] = { marked: true, dotColor: color };
             }
         });
@@ -156,8 +170,8 @@ export const CalendarScreen = ({ navigation }) => {
         return marked;
     };
 
-    const openEventDetails = (event) => {
-        setSelectedEvent(event);
+    const openEventDetails = (event, date) => {
+        setSelectedEvent({ ...event, date }); // Add the date to the selected event
         setDetailModalVisible(true);
     };
 
@@ -305,49 +319,52 @@ export const CalendarScreen = ({ navigation }) => {
 
             {/* Detail Modal */}
             <Modal visible={detailModalVisible} animationType="slide" transparent={true}>
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        {selectedEvent && (
-                            <>
-                                <Text style={styles.modalTitle}>{selectedEvent.title}</Text>
-                                <Text
-                                    style={[
-                                        styles.modalType,
-                                        {
-                                            backgroundColor:
-                                                selectedEvent.type === 'Event'
-                                                    ? '#92D4F2'
-                                                    : '#A1D871',
-                                        },
-                                    ]}
-                                >
-                                    {selectedEvent.type}
-                                </Text>
-                                <View style={styles.detailBox}>
-                                    <Text style={styles.detailLabel}>Description:</Text>
-                                    <Text style={styles.detailValue}>{selectedEvent.description}</Text>
-                                </View>
-                                <View style={styles.detailBox}>
-                                    <Text style={styles.detailLabel}>Date:</Text>
-                                    <Text style={styles.detailValue}>
-                                        {formatDateToDDMMYYYY(selectedEvent.date)}
-                                    </Text>
-                                </View>
-                                <View style={styles.detailBox}>
-                                    <Text style={styles.detailLabel}>Time:</Text>
-                                    <Text style={styles.detailValue}>{selectedEvent.time}</Text>
-                                </View>
-                                <TouchableOpacity
-                                    onPress={closeEventDetails}
-                                    style={styles.closeButton}
-                                >
-                                    <Text style={styles.closeButtonText}>Close</Text>
-                                </TouchableOpacity>
-                            </>
-                        )}
+    <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+            {selectedEvent && (
+                <>
+                    <Text style={styles.modalTitle}>{selectedEvent.title}</Text>
+                    <Text
+                        style={[
+                            styles.modalType,
+                            {
+                                backgroundColor:
+                                    selectedEvent.type === 'Event'
+                                        ? '#92D4F2'
+                                        : '#A1D871',
+                            },
+                        ]}
+                    >
+                        {selectedEvent.type}
+                    </Text>
+                    <View style={styles.detailBox}>
+                        <Text style={styles.detailLabel}>Description:</Text>
+                        <Text style={styles.detailValue}>{selectedEvent.description || 'N/A'}</Text>
                     </View>
-                </View>
-            </Modal>
+                    <View style={styles.detailBox}>
+                        <Text style={styles.detailLabel}>Date:</Text>
+                        <Text style={styles.detailValue}>
+                            {formatDateToDDMMYYYY(selectedEvent.date || 'N/A')}
+                        </Text>
+                    </View>
+                    <View style={styles.detailBox}>
+                        <Text style={styles.detailLabel}>Time:</Text>
+                        <Text style={styles.detailValue}>{selectedEvent.time || 'N/A'}</Text>
+                    </View>
+                    <TouchableOpacity
+                        onPress={() => {
+                            setDetailModalVisible(false);
+                            setSelectedEvent(null);
+                        }}
+                        style={styles.closeButton}
+                    >
+                        <Text style={styles.closeButtonText}>Close</Text>
+                    </TouchableOpacity>
+                </>
+            )}
+        </View>
+    </View>
+</Modal>
 
             {/* Events List */}
             <View style={styles.eventsContainer}>
@@ -356,7 +373,7 @@ export const CalendarScreen = ({ navigation }) => {
                     data={filteredEvents}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({ item }) => (
-                        <TouchableOpacity onPress={() => openEventDetails(item)}>
+                        <TouchableOpacity onPress={() => openEventDetails(item, selectedDate)}>
                             <View
                                 style={[
                                     styles.eventItem,
@@ -365,8 +382,8 @@ export const CalendarScreen = ({ navigation }) => {
                                             item.type === 'Event'
                                                 ? '#92D4F2'
                                                 : item.type === 'Homework'
-                                                ? '#A1D871'
-                                                : '#f4b22e',
+                                                    ? '#A1D871'
+                                                    : '#f4b22e',
                                     },
                                 ]}
                             >
@@ -377,6 +394,7 @@ export const CalendarScreen = ({ navigation }) => {
                     )}
                     ListEmptyComponent={<Text style={styles.noEventsText}>No events for this date</Text>}
                 />
+
             </View>
         </View>
     );

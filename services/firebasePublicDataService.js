@@ -30,33 +30,64 @@ export const getPosts = async (schoolId) => {
     }
 };
 
+// export const getEvents = async (schoolId) => {
+//     try {
+//         // Ensure schoolId is provided
+//         if (!schoolId) {
+//             throw new Error('schoolId is required to fetch events');
+//         }
+
+//         // Reference the collection and apply filters
+//         const col = collection(db, 'events');
+//         const q = query(
+//             col,
+//             where('schoolId', '==', schoolId) // Add filter for schoolId
+//         );
+
+//         // Fetch the documents
+//         const snapshot = await getDocs(q);
+
+//         // Map the documents to the desired format
+//         return snapshot.docs.map(doc => ({
+//             id: doc.id,      // Document ID
+//             ...doc.data()    // Spread document data
+//         }));
+//     } catch (error) {
+//         console.error('Error fetching events', error);
+//         return [];
+//     }
+// };
+
 export const getEvents = async (schoolId) => {
     try {
-        // Ensure schoolId is provided
         if (!schoolId) {
             throw new Error('schoolId is required to fetch events');
         }
 
-        // Reference the collection and apply filters
         const col = collection(db, 'events');
         const q = query(
             col,
-            where('schoolId', '==', schoolId) // Add filter for schoolId
+            where('schoolId', '==', schoolId)
         );
 
-        // Fetch the documents
         const snapshot = await getDocs(q);
+
+        // Log all documents for debugging
+        snapshot.docs.forEach(doc => {
+            console.log('Event Doc:', doc.data());
+        });
 
         // Map the documents to the desired format
         return snapshot.docs.map(doc => ({
-            id: doc.id,      // Document ID
-            ...doc.data()    // Spread document data
+            id: doc.id, // Document ID
+            ...doc.data() // Spread all document fields
         }));
     } catch (error) {
-        console.error('Error fetching events', error);
+        console.error('Error fetching events:', error);
         return [];
     }
 };
+
 
 export const addEvent = async (event) => {
     try {
