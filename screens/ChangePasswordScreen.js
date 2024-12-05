@@ -1,47 +1,50 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Colors } from '../config';
-import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
-import { auth } from '../config';
+import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { auth } from "../config";
+import { updatePasswordMetadata } from "../services/firebaseUserService";
 
-export const ChangePasswordScreen = () => {
+
+export const ChangePasswordScreen = ({navigation}) => {
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
     const handleChangePassword = async () => {
         if (!currentPassword || !newPassword || !confirmPassword) {
-            Alert.alert('Error', 'Please fill all the fields.');
+            Alert.alert("Error", "Please fill all the fields.");
             return;
         }
-
+    
         if (newPassword !== confirmPassword) {
-            Alert.alert('Error', 'Passwords do not match.');
+            Alert.alert("Error", "Passwords do not match.");
             return;
         }
-
+    
         try {
             const user = auth.currentUser;
-            const credential = EmailAuthProvider.credential(
-                user.email,
-                currentPassword
-            );
-
+            const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    
             // Reauthenticate the user
             await reauthenticateWithCredential(user, credential);
-
+    
             // Update the password
             await updatePassword(user, newPassword);
-            Alert.alert('Success', 'Password updated successfully.');
+    
+            // Update Firestore with the password change metadata
+            await updatePasswordMetadata(user.uid);
+    
+            Alert.alert("Success", "Password updated successfully.");
+            navigation.goBack()
         } catch (error) {
-            console.error('Error changing password:', error);
-            Alert.alert('Error', 'Failed to update password.');
+            console.error("Error changing password:", error);
+            Alert.alert("Error", "Failed to update password.");
         }
     };
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Change Password</Text>
             <TextInput
                 style={styles.input}
                 placeholder="Current Password"
@@ -84,12 +87,11 @@ const styles = StyleSheet.create({
     },
     input: {
         borderWidth: 1,
-        borderColor: Colors.lightGrey,
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 16,
+        borderColor: '#ddd',
+        borderRadius: 10,
+        padding: 10,
         marginBottom: 20,
-        backgroundColor: Colors.lightGrey,
+        backgroundColor: '#f9f9f9',
     },
     saveButton: {
         backgroundColor: Colors.brandYellow,

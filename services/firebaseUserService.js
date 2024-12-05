@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, where, setDoc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where, setDoc, addDoc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
 import { db } from '../config';
 
 // 1. Fetch a Single User's Details
@@ -104,6 +104,24 @@ export const fetchUserByPhoneNumber = async (phoneNumber) => {
     } catch (error) {
         console.error(`Error fetching user by phone number in school`, error);
         return null;
+    }
+};
+// Update User's Password Change Metadata in Firestore
+export const updatePasswordMetadata = async (uid) => {
+    if (!uid) {
+        console.error("Invalid user ID for updating password metadata.");
+        return;
+    }
+
+    try {
+        const userRef = doc(db, "users", uid);
+        await updateDoc(userRef, {
+            passwordLastChanged: Timestamp.now(), // Add or update the field
+        });
+        console.log(`Password metadata updated successfully for user: ${uid}`);
+    } catch (error) {
+        console.error("Error updating password metadata:", error);
+        throw error; // Rethrow for handling in the calling function
     }
 };
 
