@@ -75,8 +75,8 @@ export const HomeScreen = ({ navigation }) => {
           isLiked: postLikes.includes(user.uid),
           commentsCount: postComments.length,
           authorDetails: authorDetailsMap[post.authorId] || {
-            name: 'Unknown',
-            image_url: 'unknown',
+            name: '',
+            image_url: '',
           },
         };
       }));
