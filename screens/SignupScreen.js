@@ -56,8 +56,10 @@ export const SignupScreen = ({ navigation }) => {
             console.log(phoneNumberSnapshot);
             console.log(schoolData);
             console.log(schoolId)
-             const isEmployee = schoolData.domain === email.split('@')[1];
-
+            const isEmployee = schoolData[0].emailDomain === email.split('@')[1];
+            console.log('email', email.split('@')[1])
+            console.log('emailDomain', schoolData[0].emailDomain)
+            console.log('isEmployee', isEmployee, schoolData[0].emailDomain, email)
             const createdAt = new Date().getTime();
             const user = {
                 email,
@@ -69,6 +71,8 @@ export const SignupScreen = ({ navigation }) => {
                 userRoles: [isEmployee ? 'teacher' : 'parent'],
                 schoolId: schoolId,
             };
+            console.log('new user', user)
+
 
             const result = await createUserWithEmailAndPassword(auth, email, password);
             await sendEmailVerification(result.user);
@@ -78,7 +82,13 @@ export const SignupScreen = ({ navigation }) => {
             navigation.navigate('LoginScreen');
         } catch (error) {
             console.log('Error:', error);
-            setErrorState(error.message);
+            //setErrorState(error.message);
+            if(error.message.indexOf("auth/email-already-in-use")){
+                showAlert('Email address already in use, please try different email address.');
+            }
+            else{
+                setErrorState(error.message);
+            }
         } finally {
             setIsLoading(false); // Hide loader
         }
@@ -167,7 +177,7 @@ export const SignupScreen = ({ navigation }) => {
                                     keyExtractor: (_, index) => index.toString(),
                                     renderItem: ({ item }) => (
                                         <Text
-                                            style={{ padding: 14, fontSize: 12 }}
+                                            style={{ padding: 14, fontSize: 16, color: Colors.black }}
                                             onPress={() => handleSchoolSelection(item, setFieldValue)}
                                         >
                                             {item}
@@ -323,6 +333,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingLeft: 14,
         borderRadius: 20,
+        color: Colors.black,
+        fontSize: 16
     },
     button: {
         width: '100%',

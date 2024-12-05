@@ -11,9 +11,9 @@ import { addPost } from '../services';
 export const CreatePostScreen = ({ navigation }) => {
     const [caption, setCaption] = useState('');
     const [image, setImage] = useState(null);
+    const [uploadProgress, setUploadProgress] = useState(0); // Track upload progress
 
     const pickImage = async () => {
-        // Request permission to access the gallery
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
             alert('Permission to access the media library is required!');
@@ -38,31 +38,25 @@ export const CreatePostScreen = ({ navigation }) => {
             return;
         }
 
-        // Upload image to Firebase Storage
         const imageUri = image;
         const response = await fetch(imageUri);
-
         const blob = await response.blob();
 
-        // Create a unique name for the image
         const imageRef = ref(storage, `posts/${Date.now()}`);
-
-        // Upload image to Firebase Storage
         const uploadTask = uploadBytesResumable(imageRef, blob);
 
         uploadTask.on(
             'state_changed',
             (snapshot) => {
-                // You can track the upload progress here
+                // Calculate upload progress
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setUploadProgress(progress); // Update progress state
             },
             (error) => {
                 alert('Error uploading image: ' + error.message);
             },
             async () => {
-                // Get the download URL after successful upload
                 const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-
-                // Now, save the post in Firestore with the image URL
                 const post = {
                     caption,
                     imageUrl: downloadURL,
@@ -103,6 +97,12 @@ export const CreatePostScreen = ({ navigation }) => {
                     value={caption}
                     onChangeText={(newValue) => setCaption(newValue)}
                 />
+
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                    <Text style={styles.progressText}>
+                        Uploading... {Math.round(uploadProgress)}%
+                    </Text>
+                )}
 
                 <Button style={styles.button} onPress={handleShare}>
                     <Text style={styles.buttonText}>Share</Text>
@@ -163,5 +163,10 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: Colors.brandBlue,
         fontWeight: '700',
+    },
+    progressText: {
+        marginVertical: 10,
+        fontSize: 16,
+        color: 'gray',
     },
 });
