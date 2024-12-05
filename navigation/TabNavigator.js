@@ -94,7 +94,10 @@ export const TabNavigator = () => {
                 }} />
    
                 {allowEditing &&
-                    <Tab.Screen name="Create Post" component={user ? CreatePostScreen : AuthStack} options={{
+                    <Tab.Screen 
+                    name="Create Post" 
+                    component={user ? CreatePostScreen : AuthStack} 
+                    options={{
                         tabBarLabel: 'Post',
                         tabBarActiveTintColor: Colors.mediumGray,
                         tabBarInactiveTintColor: Colors.mediumGray,
@@ -104,7 +107,12 @@ export const TabNavigator = () => {
                         ),
                     }} />
                 }
-                <Tab.Screen name="Events" component={user ? CalendarScreen : AuthStack} options={{
+                <Tab.Screen 
+                name="Events" 
+                children={({ navigation }) => (
+                    <CalendarScreen navigation={navigation} allowEditing={allowEditing} />
+                )}
+                options={{
                     tabBarLabel: 'Calendar',
                     tabBarActiveTintColor: Colors.mediumGray,
                     tabBarInactiveTintColor: Colors.mediumGray,

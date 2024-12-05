@@ -11,7 +11,7 @@ const formatDateToDDMMYYYY = (date) => {
 };
 const formatDateToYYYYMMDD = (date) => date.split('-').reverse().join('-'); // Convert DD-MM-YYYY to YYYY-MM-DD
 
-export const CalendarScreen = ({ navigation }) => {
+export const CalendarScreen = ({ allowEditing, navigation })  => {
     const todayDate = new Date().toISOString().split('T')[0];
     const [selectedType, setSelectedType] = useState('All'); // Filter type
     const [selectedDate, setSelectedDate] = useState(todayDate); // Default to today's date
@@ -53,17 +53,10 @@ export const CalendarScreen = ({ navigation }) => {
         }
     };
 
-
-
     useEffect(() => {
         setEvents({});
         fetchEvents();
     }, [schoolDetail]);
-
-    useEffect(() => {
-        console.log('Fetched Events:', events);
-    }, [events]);
-
 
     const handleAddEvent = async () => {
         if (!newEvent.title || !newEvent.time || !newEvent.description) {
@@ -104,19 +97,26 @@ export const CalendarScreen = ({ navigation }) => {
             alert('Failed to add event.');
         }
     };
-
+    // Add Events Button
     useEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-                <TouchableOpacity
-                    style={styles.headerButton}
-                    onPress={() => setAddEventModalVisible(true)}
-                >
-                    <AntDesign name="pluscircle" size={32} color="#f4b22e" />
-                </TouchableOpacity>
-            ),
-        });
-    }, [navigation]);
+        if (allowEditing) {
+            navigation.setOptions({
+                headerRight: () => (
+                    <TouchableOpacity
+                        style={styles.headerButton}
+                        onPress={() => setAddEventModalVisible(true)}
+                    >
+                        <AntDesign name="pluscircle" size={32} color="#f4b22e" />
+                    </TouchableOpacity>
+                ),
+            });
+        } else {
+            navigation.setOptions({
+                headerRight: () => null, // Hide the button if editing is not allowed
+            });
+        }
+    }, [navigation, allowEditing]);
+    
 
     const getFilteredEvents = (date) => {
         const dateEvents = events[date] || [];

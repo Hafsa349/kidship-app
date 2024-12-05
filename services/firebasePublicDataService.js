@@ -74,8 +74,7 @@ export const getEvents = async (schoolId) => {
 
         // Log all documents for debugging
         snapshot.docs.forEach(doc => {
-            console.log('Event Doc:', doc.data());
-        });
+                      });
 
         // Map the documents to the desired format
         return snapshot.docs.map(doc => ({
@@ -93,7 +92,6 @@ export const addEvent = async (event) => {
     try {
         const col = collection(db, 'events');
         const docRef = await addDoc(col, event);
-        console.log("event added with ID: ", docRef.id);
         return { id: docRef.id, ...event };
     } catch (error) {
         console.error('Error adding post', error);
