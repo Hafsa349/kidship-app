@@ -15,12 +15,11 @@ import {
   PostDetailScreen, 
   ReportScreen,
   ChatRoomScreen,
-  ConversationScreen,
-  NewConversationScreen,
   ChatScreen,
   NewChatScreen
 } from '../screens';
 import { Colors } from '../config';
+import ChildReportsScreen from '../screens/ChildReportsScreen';
 
 const { Navigator, Screen } = createStackNavigator();
 
@@ -42,7 +41,8 @@ export const AppStack = () => {
       <Screen component={CalendarScreen} name="CalendarScreen" options={{ headerTitle: 'Events' }}/>
       <Screen component={CreatePostScreen} name="CreatePostScreen" />
       <Screen component={PostDetailScreen} name="PostDetailScreen" options={{ headerShown: true, headerTitle: 'Post Detail' }}/>
-      <Screen component={ReportScreen} name="ReportScreen"/>
+      <Screen component={ReportScreen} name="ReportScreen" options={{ headerShown: true}}/>
+      <Screen component={ChildReportsScreen} name="ChildReportsScreen" options={{ headerShown: true}}/>
       <Screen component={ProfileScreen} name="ProfileScreen" />
       <Screen component={LoginScreen} name="LoginScreen" />
       <Screen component={SignupScreen} name="SignupScreen" />

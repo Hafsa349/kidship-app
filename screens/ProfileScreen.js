@@ -7,9 +7,12 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Button } from '../components';
 import { useFocusEffect } from '@react-navigation/native';
 
-export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail }) => {
+export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail, allowEditing }) => {
     // console.log('User in ProfileScreen:', user);
     // console.log('User Details in ProfileScreen:', userDetail);
+    console.log('allowEditing', allowEditing)
+    console.log('SCHOOL PROFILE: ', userDetail.schoolId)
+
 
     const handleSignOut = async () => {
         Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -105,40 +108,71 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail 
                     </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={styles.optionItem}
-                    onPress={() => navigateToScreen('ViewChildrenScreen')}
-                >
-                    <View style={styles.optionIcon}>
-                        <Ionicons name="happy-outline" size={24} color={Colors.brandYellow} />
-                    </View>
-                    <View>
-                        <Text style={styles.optionTitle}>View Children</Text>
-                        <Text style={styles.optionSubtitle}>
-                            Check your children's profiles
-                        </Text>
-                    </View>
-                    <View style={styles.optionForward}>
-                        <Ionicons name="chevron-forward" size={24} color={Colors.lightGrey} />
-                    </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.optionItem}
-                    onPress={() => navigateToScreen('ViewChildrenScreen')}
-                >
-                    <View style={styles.optionIcon}>
-                        <Ionicons name="happy-outline" size={24} color={Colors.brandYellow} />
-                    </View>
-                    <View>
-                        <Text style={styles.optionTitle}>View Students</Text>
-                        <Text style={styles.optionSubtitle}>
-                            Check your students's profiles
-                        </Text>
-                    </View>
-                    <View style={styles.optionForward}>
-                        <Ionicons name="chevron-forward" size={24} color={Colors.lightGrey} />
-                    </View>
-                </TouchableOpacity>
+                {/* Conditionally Render View Children or View Students */}
+                {allowEditing ? (
+                    <TouchableOpacity
+                        style={styles.optionItem}
+                        onPress={() => navigateToScreen('StudentsScreen')}
+                    >
+                        <View style={styles.optionIcon}>
+                            <Ionicons
+                                name="happy-outline"
+                                size={24}
+                                color={Colors.brandYellow}
+                            />
+                        </View>
+                        <View>
+                            <Text style={styles.optionTitle}>View Students</Text>
+                            <Text style={styles.optionSubtitle}>
+                                Check your students' profiles
+                            </Text>
+                        </View>
+                        <View style={styles.optionForward}>
+                            <Ionicons
+                                name="chevron-forward"
+                                size={24}
+                                color={Colors.lightGrey}
+                            />
+                        </View>
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity
+                        style={styles.optionItem}
+                        onPress={() => navigation.navigate('ChildrenScreen', { 
+                            userDetail: {
+                                firstName: userDetail.firstName,
+                                lastName: userDetail.lastName,
+                                phoneNumber: userDetail.phoneNumber,
+                                dateOfBirth: userDetail.dateOfBirth,
+                                uid: userDetail.uid,
+                                schoolId: userDetail.schoolId
+
+                            } 
+                        }
+                    )}
+                    >
+                        <View style={styles.optionIcon}>
+                            <Ionicons
+                                name="happy-outline"
+                                size={24}
+                                color={Colors.brandYellow}
+                            />
+                        </View>
+                        <View>
+                            <Text style={styles.optionTitle}>View Children</Text>
+                            <Text style={styles.optionSubtitle}>
+                                Check your children's profiles
+                            </Text>
+                        </View>
+                        <View style={styles.optionForward}>
+                            <Ionicons
+                                name="chevron-forward"
+                                size={24}
+                                color={Colors.lightGrey}
+                            />
+                        </View>
+                    </TouchableOpacity>
+                )}
             </View>
 
 
@@ -232,5 +266,16 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: Colors.brandBlue,
         fontWeight: '700'
+    },
+    buttonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    closeButton: {
+        marginTop: 20,
+        alignItems: 'center',
+        backgroundColor: '#ddd',
+        padding: 10,
+        borderRadius: 10,
     },
 });

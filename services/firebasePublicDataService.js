@@ -110,3 +110,22 @@ export const addPost = async (post) => {
         return null;
     }
 };
+export const fetchChildren = async (parentId, schoolId) => {
+    if (!parentId || !schoolId) {
+        throw new Error("Parent ID and School ID are required.");
+    }
+
+    try {
+        const childrenQuery = query(
+            collection(db, "children"),
+            where("parent", "==", parentId),
+            where("schoolId", "==", schoolId)
+        );
+        const snapshot = await getDocs(childrenQuery);
+        const children = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        return children;
+    } catch (error) {
+        console.error("Error fetching children profiles:", error);
+        throw error;
+    }
+};

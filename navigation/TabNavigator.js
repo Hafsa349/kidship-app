@@ -94,15 +94,32 @@ export const TabNavigator = () => {
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
-                <Tab.Screen name="Child Progress" component={user ? ReportScreen : AuthStack} options={{
-                    tabBarLabel: 'Child Progress',
-                    tabBarActiveTintColor: Colors.mediumGray,
-                    tabBarInactiveTintColor: Colors.mediumGray,
-                    tabBarIcon: ({ focused }) => (
-                        <Ionicons name={focused ? "book" : "book-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
-                            style={{ marginRight: 0 }} />
-                    ),
-                }} />
+                <Tab.Screen
+                    name="Child Progress"
+                    children={({ navigation }) => (
+                        <ReportScreen
+                            navigation={navigation}
+                            allowEditing={allowEditing}
+                            user={user}
+                            userDetail={userDetail}
+                        />
+                    )}
+                    options={{
+                        // headerShown: false,
+                        tabBarLabel: 'Child Progress',
+                        tabBarActiveTintColor: Colors.mediumGray,
+                        tabBarInactiveTintColor: Colors.mediumGray,
+                        tabBarIcon: ({ focused }) => (
+                            <Ionicons
+                                name={focused ? "book" : "book-outline"}
+                                color={focused ? Colors.brandBlue : Colors.mediumGray}
+                                size={28}
+                                style={{ marginRight: 0 }}
+                            />
+                        ),
+                    }}
+                />
+
 
                 {allowEditing &&
                     <Tab.Screen
@@ -140,6 +157,8 @@ export const TabNavigator = () => {
                             user={user}
                             userDetail={userDetail}
                             refreshUserDetail={refreshUserDetail}
+                            allowEditing={allowEditing}
+
                         />
                     )}
                     options={{
