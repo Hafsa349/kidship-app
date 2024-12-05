@@ -10,7 +10,7 @@ import { allowedEditingRoles } from '../utils/constants';
 import { Icon } from '../components';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { AuthStack, AppStack, MoreAppStack } from '../navigation';
+import { AuthStack, AppStack, ProfileStack } from '../navigation';
 import { CalendarScreen, CreatePostScreen, HomeWorkScreen, ReportScreen } from '../screens';
 import { fetchUserDetails } from '../services';
 
@@ -122,8 +122,9 @@ export const TabNavigator = () => {
                     ),
                 }} />
                 <Tab.Screen name="Profile"
-                    children={() => <MoreAppStack user={user} />}
+                    children={() => <ProfileStack user={user} />}
                     options={{
+                        headerShown: false,
                         tabBarLabel: 'Profile',
                         tabBarActiveTintColor: Colors.mediumGray,
                         tabBarInactiveTintColor: Colors.mediumGray,

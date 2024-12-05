@@ -4,16 +4,29 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { db, auth } from '../config/firebase';
 import { collection, doc, addDoc, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../config';
 
-export const ChatRoomScreen = ({ route }) => {
+
+export const ChatRoomScreen = ({ route, navigation }) => {
     const { item } = route.params;
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState(''); // Control the TextInput value
     const scrollViewRef = useRef(null);
     const [isSendDisabled, setIsSendDisabled] = useState(true);
-
     const currentUser = auth.currentUser;
     const roomId = item.roomId || [currentUser?.uid, item?.id].sort().join('_');
+
+       // Add header button to navigate to New Chat Screen
+       useEffect(() => {
+        navigation.setOptions({
+            headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeftButton}>
+                    <Ionicons name="arrow-back" size={24} color={Colors.brandBlue} />
+                </TouchableOpacity>
+            ),
+        });
+    }, [navigation]);
 
     useEffect(() => {
         const messagesRef = collection(db, 'rooms', roomId, 'messages');
@@ -111,6 +124,12 @@ export const ChatRoomScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
+    headerRightButton: {
+        marginRight: 16,
+    },
+    headerLeftButton: {
+        marginLeft: 16,
+    },
     container: {
         flex: 1,
         backgroundColor: '#fff',

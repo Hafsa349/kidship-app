@@ -2,12 +2,31 @@ import React, { useState, useEffect } from 'react';
 import { Image, TouchableOpacity, StyleSheet, View, Text, FlatList, TextInput, Alert } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db, auth } from '../config/firebase';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../config';
 
 export const NewChatScreen = ({ navigation }) => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const currentUser = auth.currentUser;
+
+    // Add header button to navigate to New Chat Screen
+    useEffect(() => {
+      navigation.setOptions({
+          headerRight: () => (
+              <TouchableOpacity style={styles.headerRightButton} onPress={() => navigation.navigate('NewChatScreen')}>
+                  <AntDesign name="pluscircle" size={32} color="#f5b22d" />
+              </TouchableOpacity>
+          ),
+          headerLeft: () => (
+              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeftButton}>
+                  <Ionicons name="arrow-back" size={24} color={Colors.brandBlue} />
+              </TouchableOpacity>
+          ),
+      });
+  }, [navigation]);
 
   const fetchUsers = async () => {
     try {
@@ -105,6 +124,12 @@ export const NewChatScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  headerRightButton: {
+    marginRight: 16,
+},
+headerLeftButton: {
+    marginLeft: 16,
+},
   screenContainer: {
     flex: 1,
     backgroundColor: '#fff',

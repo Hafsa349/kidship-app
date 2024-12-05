@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { View, FlatList, Text, TouchableOpacity, SafeAreaView, Image, ActivityIndicator, StyleSheet } from 'react-native';
 import { collection, query, where, onSnapshot, doc, getDoc, orderBy, limit } from 'firebase/firestore';
 import { db, auth } from '../config/firebase';
 import { format } from 'date-fns';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../config';
 
 export const ChatScreen = ({ navigation }) => {
     const [conversations, setConversations] = useState([]);
@@ -75,8 +77,13 @@ export const ChatScreen = ({ navigation }) => {
     useEffect(() => {
         navigation.setOptions({
             headerRight: () => (
-                <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('NewChatScreen')}>
+                <TouchableOpacity style={styles.headerRightButton} onPress={() => navigation.navigate('NewChatScreen')}>
                     <AntDesign name="pluscircle" size={32} color="#f5b22d" />
+                </TouchableOpacity>
+            ),
+            headerLeft: () => (
+                <TouchableOpacity style={styles.headerLeftButton} onPress={() => navigation.goBack()}>
+                    <Ionicons name="arrow-back" size={24} color={Colors.brandBlue} />
                 </TouchableOpacity>
             ),
         });
@@ -148,8 +155,11 @@ export const ChatScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-    headerButton: {
+    headerRightButton: {
         marginRight: 16,
+    },
+    headerLeftButton: {
+        marginLeft: 16,
     },
     loadingContainer: {
         flex: 1,
