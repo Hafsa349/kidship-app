@@ -6,7 +6,8 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../config';
 import { onAuthStateChanged } from 'firebase/auth';
 import { AuthenticatedUserContext } from '../providers';
-export const MoreScreen = ({ navigation }) => {
+
+export const ProfileScreen = ({ navigation }) => {
     const { user, setUser } = useContext(AuthenticatedUserContext);
 
     useEffect(() => {

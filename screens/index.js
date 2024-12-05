@@ -3,7 +3,7 @@ import { SignupScreen } from './SignupScreen';
 import { HomeScreen } from './HomeScreen';
 import { ForgotPasswordScreen } from './ForgotPasswordScreen';
 import { MyAccountScreen } from './MyAccountScreen';
-import { MoreScreen } from './MoreScreen';
+import { ProfileScreen } from './ProfileScreen';
 import { PrivacyPolicyScreen } from './PrivacyPolicyScreen';
 import { TermsAndConditionScreen } from './TermsAndConditionScreen';
 import { GetStartedScreen } from './GetStartedScreen'
@@ -24,7 +24,7 @@ export {
     HomeScreen,
     ForgotPasswordScreen,
     MyAccountScreen,
-    MoreScreen,
+    ProfileScreen,
     PrivacyPolicyScreen,
     TermsAndConditionScreen,
     GetStartedScreen,

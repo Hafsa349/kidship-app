@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import {
   HomeScreen,
   MyAccountScreen, 
-  MoreScreen,
+  ProfileScreen,
   LoginScreen, 
   SignupScreen, 
   ForgotPasswordScreen, 
@@ -43,7 +43,7 @@ export const AppStack = () => {
       <Screen component={CreatePostScreen} name="CreatePostScreen" />
       <Screen component={PostDetailScreen} name="PostDetailScreen" options={{ headerShown: true, headerTitle: 'Post Detail' }}/>
       <Screen component={ReportScreen} name="ReportScreen"/>
-      <Screen component={MoreScreen} name="MoreScreen" />
+      <Screen component={ProfileScreen} name="ProfileScreen" />
       <Screen component={LoginScreen} name="LoginScreen" />
       <Screen component={SignupScreen} name="SignupScreen" />
       <Screen component={ForgotPasswordScreen} name="ForgotPasswordScreen" />

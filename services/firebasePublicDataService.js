@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, addDoc, setDoc, doc } from "firebase/firestore";
+import { collection, getDocs, query, where, addDoc, setDoc, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from '../config';
 
 export const getPosts = async (schoolId) => {
@@ -30,34 +30,6 @@ export const getPosts = async (schoolId) => {
     }
 };
 
-// export const getEvents = async (schoolId) => {
-//     try {
-//         // Ensure schoolId is provided
-//         if (!schoolId) {
-//             throw new Error('schoolId is required to fetch events');
-//         }
-
-//         // Reference the collection and apply filters
-//         const col = collection(db, 'events');
-//         const q = query(
-//             col,
-//             where('schoolId', '==', schoolId) // Add filter for schoolId
-//         );
-
-//         // Fetch the documents
-//         const snapshot = await getDocs(q);
-
-//         // Map the documents to the desired format
-//         return snapshot.docs.map(doc => ({
-//             id: doc.id,      // Document ID
-//             ...doc.data()    // Spread document data
-//         }));
-//     } catch (error) {
-//         console.error('Error fetching events', error);
-//         return [];
-//     }
-// };
-
 export const getEvents = async (schoolId) => {
     try {
         if (!schoolId) {
@@ -78,8 +50,8 @@ export const getEvents = async (schoolId) => {
 
         // Map the documents to the desired format
         return snapshot.docs.map(doc => ({
-            id: doc.id, // Document ID
-            ...doc.data() // Spread all document fields
+            id: doc.id,      // Document ID
+            ...doc.data()    // Event data
         }));
     } catch (error) {
         console.error('Error fetching events:', error);
@@ -94,8 +66,20 @@ export const addEvent = async (event) => {
         const docRef = await addDoc(col, event);
         return { id: docRef.id, ...event };
     } catch (error) {
-        console.error('Error adding post', error);
+        console.error('Error adding event', error);
         return null;
+    }
+};
+
+export const deleteEvent = async (eventId) => {
+    try {
+        const eventDoc = doc(db, 'events', eventId);
+        await deleteDoc(eventDoc);
+        console.log(`Event ${eventId} deleted successfully.`);
+        return true;
+    } catch (error) {
+        console.error('Error deleting event:', error);
+        return false;
     }
 };
 

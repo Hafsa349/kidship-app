@@ -1,5 +1,5 @@
 //MoreNavigationStack.js
-import { LocationScreen, MyAccountScreen, LoginScreen, MoreScreen, PrivacyPolicyScreen, TermsAndConditionScreen } from '../screens';
+import { LocationScreen, MyAccountScreen, LoginScreen, ProfileScreen, PrivacyPolicyScreen, TermsAndConditionScreen } from '../screens';
 import React, {  } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -10,7 +10,7 @@ export const MoreAppStack = () => {
 
     return (
         <Navigator screenOptions={{ headerShown: false }}>
-            <Screen component={MoreScreen} name="MoreScreen" />
+            <Screen component={ProfileScreen} name="{ProfileScreen}" />
             <Screen component={MyAccountScreen} name="MyAccountScreen" />
             <Screen component={LoginScreen} name="LoginScreen" />
             <Screen component={PrivacyPolicyScreen} name="PrivacyPolicyScreen" />
