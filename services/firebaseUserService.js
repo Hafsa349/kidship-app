@@ -279,3 +279,31 @@ export const getComments = async (postId) => {
         return [];
     }
 };
+
+export const fetchUsersBySchool = async (schoolId) => {
+    try {
+        // Ensure schoolId is provided
+        if (!schoolId) {
+            throw new Error('schoolId is required to fetch posts');
+        }
+
+        // Reference the collection and apply filters
+        const col = collection(db, 'users');
+        const q = query(
+            col,
+            where('schoolId', '==', schoolId) // Add filter for schoolId
+        );
+
+        // Fetch the documents
+        const snapshot = await getDocs(q);
+
+        // Map the documents to the desired format
+        return snapshot.docs.map(doc => ({
+            id: doc.id,      // Document ID
+            ...doc.data()    // Spread document data
+        }));
+    } catch (error) {
+        console.error('Error fetching users', error);
+        return [];
+    }
+};

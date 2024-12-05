@@ -2,23 +2,22 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, FlatList, Alert } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { db, auth } from '../config/firebase';
-import { collection, doc, addDoc, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore';
+import { collection, doc, addDoc, onSnapshot, setDoc, getDoc, orderBy, query, Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../config';
 
-
 export const ChatRoomScreen = ({ route, navigation }) => {
     const { item } = route.params;
     const [messages, setMessages] = useState([]);
-    const [message, setMessage] = useState(''); // Control the TextInput value
+    const [message, setMessage] = useState('');
+    const [participants, setParticipants] = useState([]);
     const scrollViewRef = useRef(null);
     const [isSendDisabled, setIsSendDisabled] = useState(true);
     const currentUser = auth.currentUser;
     const roomId = item.roomId || [currentUser?.uid, item?.id].sort().join('_');
 
-       // Add header button to navigate to New Chat Screen
-       useEffect(() => {
+    useEffect(() => {
         navigation.setOptions({
             headerLeft: () => (
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeftButton}>
@@ -27,6 +26,50 @@ export const ChatRoomScreen = ({ route, navigation }) => {
             ),
         });
     }, [navigation]);
+
+    useEffect(() => {
+        const fetchParticipants = async () => {
+            try {
+                const roomDocRef = doc(db, 'rooms', roomId);
+                const roomDoc = await getDoc(roomDocRef);
+
+                if (roomDoc.exists()) {
+                    const roomData = roomDoc.data();
+                    const participantIds = roomData.participants || [];
+
+                    const fetchedParticipants = await Promise.all(
+                        participantIds.map(async (userId) => {
+                            const userDoc = await getDoc(doc(db, 'users', userId));
+                            return userDoc.exists() ? { id: userId, ...userDoc.data() } : null;
+                        })
+                    );
+
+                    setParticipants(fetchedParticipants.filter(Boolean));
+                } else {
+                    await createRoomIfNotExists();
+                }
+            } catch (error) {
+                console.error('Error fetching participants:', error);
+                Alert.alert('Error', 'Unable to fetch participants.');
+            }
+        };
+
+        const createRoomIfNotExists = async () => {
+            try {
+                const roomRef = doc(db, 'rooms', roomId);
+                await setDoc(roomRef, {
+                    participants: [currentUser?.uid, item?.id],
+                    createdAt: Timestamp.fromDate(new Date()),
+                });
+                console.log('Room created successfully');
+            } catch (error) {
+                console.error('Error creating room:', error);
+                Alert.alert('Error', 'Unable to create room.');
+            }
+        };
+
+        fetchParticipants();
+    }, [roomId]);
 
     useEffect(() => {
         const messagesRef = collection(db, 'rooms', roomId, 'messages');
@@ -57,7 +100,6 @@ export const ChatRoomScreen = ({ route, navigation }) => {
                 createdAt: Timestamp.fromDate(new Date()),
             });
 
-            // Clear the input field
             setMessage('');
         } catch (error) {
             Alert.alert('Message', error.message);
@@ -100,8 +142,8 @@ export const ChatRoomScreen = ({ route, navigation }) => {
                 <TextInput
                     style={styles.textInput}
                     placeholder="Type a message..."
-                    value={message} // Bind TextInput value to state
-                    onChangeText={handleInputChange} // Update state on input change
+                    value={message}
+                    onChangeText={handleInputChange}
                     onSubmitEditing={handleSendMessage}
                 />
                 <TouchableOpacity
@@ -124,9 +166,6 @@ export const ChatRoomScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-    headerRightButton: {
-        marginRight: 16,
-    },
     headerLeftButton: {
         marginLeft: 16,
     },

@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Image, TouchableOpacity, StyleSheet, View, Text, FlatList, TextInput, Alert } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db, auth } from '../config/firebase';
+import { fetchUsersBySchool } from '../services'
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../config';
+import { SchoolContext } from '../providers';
 
 export const NewChatScreen = ({ navigation }) => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const currentUser = auth.currentUser;
+    const { schoolDetail } = useContext(SchoolContext);
+    const currentUser = auth.currentUser;
 
     // Add header button to navigate to New Chat Screen
     useEffect(() => {
@@ -30,15 +33,10 @@ export const NewChatScreen = ({ navigation }) => {
 
   const fetchUsers = async () => {
     try {
-      const usersSnapshot = await getDocs(collection(db, 'users'));
-      const usersList = usersSnapshot.docs
-        .map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
-        .filter(user => user.id !== currentUser?.uid);
-
-      const sortedUsers = usersList.sort((a, b) => {
+      console.log('schoolDetail', schoolDetail)
+      const allUsers = await fetchUsersBySchool(schoolDetail)
+     
+      const sortedUsers = allUsers?.filter(user => user.id !== currentUser?.uid)?.sort((a, b) => {
         if (a.firstName.toLowerCase() === b.firstName.toLowerCase()) {
           return a.lastName.toLowerCase().localeCompare(b.lastName.toLowerCase());
         }

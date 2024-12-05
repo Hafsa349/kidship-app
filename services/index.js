@@ -1,4 +1,4 @@
-import { fetchUserDetails, fetchUserDetailsByIds, createUser, toggleLike, addComment, getLikes, getComments,fetchUserByPhoneNumber, fetchSchoolByEmailDomain, fetchSchoolByName} from './firebaseUserService';
+import { fetchUserDetails, fetchUserDetailsByIds, createUser, toggleLike, addComment, getLikes, getComments,fetchUserByPhoneNumber, fetchSchoolByEmailDomain, fetchSchoolByName, fetchUsersBySchool} from './firebaseUserService';
 import { getPosts, addPost, getEvents, addEvent } from './firebasePublicDataService';
 export {
     fetchUserDetails,
@@ -14,5 +14,6 @@ export {
     getLikes,
     addPost,
     addEvent,
-    getEvents
+    getEvents,
+    fetchUsersBySchool
 };
