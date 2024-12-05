@@ -1,222 +1,441 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, Button } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { FontAwesome } from '@expo/vector-icons';
-import { Colors } from '../config';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import { SchoolContext } from '../providers';
-import { addEvent, getEvents } from '../services';
+import { addEvent, getEvents } from '../services/firebasePublicDataService';
 
-// Helper function to get today's date in "YYYY-MM-DD" format
-const getTodayDate = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+const formatDateToDDMMYYYY = (date) => {
+    if (!date) return ''; // Return an empty string if date is undefined or null
+    return date.split('-').reverse().join('-');
 };
+const formatDateToYYYYMMDD = (date) => date.split('-').reverse().join('-'); // Convert DD-MM-YYYY to YYYY-MM-DD
 
-// Calendar Screen Component
 export const CalendarScreen = ({ navigation }) => {
-    const [eventsData, setEventsData] = useState({});
-    const [markedDates, setMarkedDates] = useState({});
-    const [selectedDate, setSelectedDate] = useState(getTodayDate()); // Default to today's date
-    const [modalVisible, setModalVisible] = useState(false);
-    const [newEventTitle, setNewEventTitle] = useState('');
-    const [newEventDescription, setNewEventDescription] = useState('');
-    const todayDate = getTodayDate();
+    const todayDate = new Date().toISOString().split('T')[0];
+    const [selectedType, setSelectedType] = useState('All'); // Filter type
+    const [selectedDate, setSelectedDate] = useState(todayDate); // Default to today's date
+    const [events, setEvents] = useState({});
+    const [addEventModalVisible, setAddEventModalVisible] = useState(false);
+    const [detailModalVisible, setDetailModalVisible] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState(null);
+    const [newEvent, setNewEvent] = useState({
+        title: '',
+        type: 'Event',
+        description: '',
+        date: formatDateToDDMMYYYY(todayDate), // Displayed in DD-MM-YYYY
+        time: '',
+    });
     const { schoolDetail } = useContext(SchoolContext);
 
-    const isToday = selectedDate === todayDate;
-    const events = eventsData[selectedDate] || []; // Get events for the selected date
-
-    // Fetch and process events
-    useEffect(() => {
-        const fetchEvents = async () => {
-            const events = await getEvents(schoolDetail);
+    // Fetch events from Firestore
+    const fetchEvents = async () => {
+        if (!schoolDetail) return;
+        try {
+            const fetchedEvents = await getEvents(schoolDetail);
             const formattedEvents = {};
-            const markedDatesObj = {};
-
-            // Process events for display and marking
-            events.forEach((event) => {
-                const eventDate = event.date; // Assuming events are in 'YYYY-MM-DD' format
-                if (!formattedEvents[eventDate]) {
-                    formattedEvents[eventDate] = [];
+            fetchedEvents.forEach((event) => {
+                const { date, ...rest } = event;
+                if (!formattedEvents[date]) {
+                    formattedEvents[date] = [];
                 }
-                formattedEvents[eventDate].push(event);
-
-                // Mark the date
-                markedDatesObj[eventDate] = {
-                    marked: true,
-                    dotColor: Colors.brandBlue, // Customize the color for events
-                };
+                formattedEvents[date].push(rest);
             });
+            setEvents(formattedEvents);
+        } catch (error) {
+            console.error('Error fetching events:', error);
+        }
+    };
 
-            setEventsData(formattedEvents);
-            setMarkedDates(markedDatesObj);
-        };
-
+    useEffect(() => {
         fetchEvents();
     }, [schoolDetail]);
 
-    // Add new event
     const handleAddEvent = async () => {
-        if (!newEventTitle.trim() || !newEventDescription.trim()) {
-            alert('Please fill out all fields');
+        if (!newEvent.title || !newEvent.time || !newEvent.description) {
+            alert('Please fill all fields.');
             return;
         }
 
-        const newEvent = {
-            id: Date.now().toString(),
-            title: newEventTitle,
-            description: newEventDescription,
-            date: selectedDate,
+        if (!schoolDetail) {
+            alert('School ID is missing.');
+            return;
+        }
+
+        const eventToSave = {
+            title: newEvent.title,
+            type: newEvent.type,
+            description: newEvent.description,
+            date: formatDateToYYYYMMDD(newEvent.date), // Save as YYYY-MM-DD
+            time: newEvent.time,
             schoolId: schoolDetail,
         };
 
-        await addEvent(newEvent);
+        try {
+            const addedEvent = await addEvent(eventToSave);
+            if (addedEvent) {
+                alert('Event added successfully!');
+                setAddEventModalVisible(false);
+                setNewEvent({
+                    title: '',
+                    type: 'Event',
+                    description: '',
+                    date: formatDateToDDMMYYYY(todayDate),
+                    time: '',
+                });
+                fetchEvents(); // Refresh events after adding
+            }
+        } catch (error) {
+            console.error('Error adding event:', error);
+            alert('Failed to add event.');
+        }
+    };
 
-        setEventsData((prevData) => ({
-            ...prevData,
-            [selectedDate]: [...(prevData[selectedDate] || []), newEvent],
-        }));
+    useEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={() => setAddEventModalVisible(true)}
+                >
+                    <AntDesign name="pluscircle" size={32} color="#f4b22e" />
+                </TouchableOpacity>
+            ),
+        });
+    }, [navigation]);
 
-        setMarkedDates((prevDates) => ({
-            ...prevDates,
-            [selectedDate]: {
-                marked: true,
-                dotColor: Colors.brandBlue,
+    const getFilteredEvents = (date) => {
+        const dateEvents = events[date] || [];
+        if (selectedType === 'All') return dateEvents;
+        return dateEvents.filter((event) => event.type === selectedType);
+    };
+
+    const filteredEvents = getFilteredEvents(selectedDate);
+
+    const getMarkedDates = () => {
+        const marked = {};
+        Object.keys(events).forEach((date) => {
+            const dateEvents = getFilteredEvents(date);
+            if (dateEvents.length > 0) {
+                const color =
+                    selectedType === 'Event'
+                        ? '#92D4F2'
+                        : selectedType === 'Homework'
+                        ? '#A1D871'
+                        : '#f4b22e';
+                marked[date] = { marked: true, dotColor: color };
+            }
+        });
+
+        marked[todayDate] = {
+            customStyles: {
+                text: {
+                    color:
+                        todayDate === selectedDate
+                            ? '#FFFFFF'
+                            : selectedType === 'Event'
+                                ? '#92D4F2'
+                                : selectedType === 'Homework'
+                                    ? '#A1D871'
+                                    : '#f4b22e',
+                },
+                container: {
+                    backgroundColor:
+                        todayDate === selectedDate
+                            ? selectedType === 'Event'
+                                ? '#92D4F2'
+                                : selectedType === 'Homework'
+                                    ? '#A1D871'
+                                    : '#f4b22e'
+                            : undefined,
+                    borderRadius: 15,
+                },
             },
-        }));
+        };
 
-        setModalVisible(false);
-        setNewEventTitle('');
-        setNewEventDescription('');
+        return marked;
+    };
+
+    const openEventDetails = (event) => {
+        setSelectedEvent(event);
+        setDetailModalVisible(true);
+    };
+
+    const closeEventDetails = () => {
+        setDetailModalVisible(false);
+        setSelectedEvent(null);
     };
 
     return (
         <View style={styles.container}>
+            {/* Top Filter Buttons */}
+            <View style={styles.filterContainer}>
+                <TouchableOpacity
+                    style={[
+                        styles.filterButton,
+                        selectedType === 'All' && {
+                            backgroundColor: '#f4b22e',
+                            shadowColor: '#f4b22e',
+                        },
+                        selectedType !== 'All' && { backgroundColor: '#F4E2BC' },
+                    ]}
+                    onPress={() => setSelectedType('All')}
+                >
+                    <Text
+                        style={[
+                            styles.filterText,
+                            selectedType !== 'All' && { color: '#9ca3af' },
+                        ]}
+                    >
+                        All
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[
+                        styles.filterButton,
+                        selectedType === 'Event' && {
+                            backgroundColor: '#92D4F2',
+                            shadowColor: '#92D4F2',
+                        },
+                        selectedType !== 'Event' && { backgroundColor: '#CDE5F1' },
+                    ]}
+                    onPress={() => setSelectedType('Event')}
+                >
+                    <Text
+                        style={[
+                            styles.filterText,
+                            selectedType !== 'Event' && { color: '#9ca3af' },
+                        ]}
+                    >
+                        Events
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[
+                        styles.filterButton,
+                        selectedType === 'Homework' && {
+                            backgroundColor: '#A1D871',
+                            shadowColor: '#A1D871',
+                        },
+                        selectedType !== 'Homework' && { backgroundColor: '#CDEACD' },
+                    ]}
+                    onPress={() => setSelectedType('Homework')}
+                >
+                    <Text
+                        style={[
+                            styles.filterText,
+                            selectedType !== 'Homework' && { color: '#9ca3af' },
+                        ]}
+                    >
+                        Homeworks
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
             {/* Calendar Component */}
             <Calendar
                 onDayPress={(day) => setSelectedDate(day.dateString)}
-                markedDates={{
-                    ...markedDates,
-                    [selectedDate]: { selected: true, marked: true, selectedColor: Colors.brandBlue },
-                }}
+                markingType="custom"
+                markedDates={getMarkedDates()}
             />
 
-            {/* Events List */}
-            <View style={styles.eventsContainer}>
-                {events.length > 0 ? (
-                    <>
-                        <Text style={styles.sectionTitle}>
-                            {isToday ? 'Events Today' : `Events for ${selectedDate}`}
-                        </Text>
-                        <FlatList
-                            data={events}
-                            keyExtractor={(item) => item.id}
-                            renderItem={({ item }) => (
-                                <View style={styles.eventItem}>
-                                    <FontAwesome name="star-o" size={24} color="black" style={styles.icon} />
-                                    <View style={styles.eventDetails}>
-                                        <Text style={styles.eventTitle}>{item.title}</Text>
-                                        <Text style={styles.eventType}>{item.description}</Text>
-                                    </View>
-                                    <Text style={styles.eventDate}>{item.date}</Text>
-                                </View>
-                            )}
-                        />
-                    </>
-                ) : (
-                    <Text style={styles.noEventsText}>No events for this date</Text>
-                )}
-            </View>
-
-            {/* Floating Action Button */}
-            <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
-                <FontAwesome name="plus" size={24} color="white" />
-            </TouchableOpacity>
-
             {/* Add Event Modal */}
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-            >
+            <Modal visible={addEventModalVisible} animationType="slide" transparent={true}>
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Add New Event</Text>
                         <TextInput
                             style={styles.input}
-                            placeholder="Event Title"
-                            value={newEventTitle}
-                            onChangeText={setNewEventTitle}
+                            placeholder="Title"
+                            value={newEvent.title}
+                            onChangeText={(text) => setNewEvent({ ...newEvent, title: text })}
+                        />
+                        <TextInput
+                            style={[styles.input, styles.descriptionInput]}
+                            placeholder="Description"
+                            value={newEvent.description}
+                            onChangeText={(text) => setNewEvent({ ...newEvent, description: text })}
+                            multiline={true}
+                            numberOfLines={3}
                         />
                         <TextInput
                             style={styles.input}
-                            placeholder="Description"
-                            value={newEventDescription}
-                            onChangeText={setNewEventDescription}
+                            placeholder="Date (DD-MM-YYYY)"
+                            value={newEvent.date}
+                            onChangeText={(text) => setNewEvent({ ...newEvent, date: text })}
                         />
-                        <Button title="Save Event" onPress={handleAddEvent} />
-                        <Button title="Cancel" color="red" onPress={() => setModalVisible(false)} />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Time (HH:MM)"
+                            value={newEvent.time}
+                            onChangeText={(text) => setNewEvent({ ...newEvent, time: text })}
+                        />
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                onPress={() => setNewEvent({ ...newEvent, type: 'Event' })}
+                                style={[
+                                    styles.typeButton,
+                                    newEvent.type === 'Event' && { backgroundColor: '#92D4F2' },
+                                ]}
+                            >
+                                <Text style={styles.typeButtonText}>Event</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => setNewEvent({ ...newEvent, type: 'Homework' })}
+                                style={[
+                                    styles.typeButton,
+                                    newEvent.type === 'Homework' && { backgroundColor: '#A1D871' },
+                                ]}
+                            >
+                                <Text style={styles.typeButtonText}>Homework</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <TouchableOpacity onPress={handleAddEvent} style={styles.addButton}>
+                            <Text style={styles.addButtonText}>Add Event</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => setAddEventModalVisible(false)}
+                            style={styles.closeButton}
+                        >
+                            <Text style={styles.closeButtonText}>Cancel</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </Modal>
+
+            {/* Detail Modal */}
+            <Modal visible={detailModalVisible} animationType="slide" transparent={true}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        {selectedEvent && (
+                            <>
+                                <Text style={styles.modalTitle}>{selectedEvent.title}</Text>
+                                <Text
+                                    style={[
+                                        styles.modalType,
+                                        {
+                                            backgroundColor:
+                                                selectedEvent.type === 'Event'
+                                                    ? '#92D4F2'
+                                                    : '#A1D871',
+                                        },
+                                    ]}
+                                >
+                                    {selectedEvent.type}
+                                </Text>
+                                <View style={styles.detailBox}>
+                                    <Text style={styles.detailLabel}>Description:</Text>
+                                    <Text style={styles.detailValue}>{selectedEvent.description}</Text>
+                                </View>
+                                <View style={styles.detailBox}>
+                                    <Text style={styles.detailLabel}>Date:</Text>
+                                    <Text style={styles.detailValue}>
+                                        {formatDateToDDMMYYYY(selectedEvent.date)}
+                                    </Text>
+                                </View>
+                                <View style={styles.detailBox}>
+                                    <Text style={styles.detailLabel}>Time:</Text>
+                                    <Text style={styles.detailValue}>{selectedEvent.time}</Text>
+                                </View>
+                                <TouchableOpacity
+                                    onPress={closeEventDetails}
+                                    style={styles.closeButton}
+                                >
+                                    <Text style={styles.closeButtonText}>Close</Text>
+                                </TouchableOpacity>
+                            </>
+                        )}
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Events List */}
+            <View style={styles.eventsContainer}>
+                <Text style={styles.sectionTitle}>Events for {formatDateToDDMMYYYY(selectedDate)}</Text>
+                <FlatList
+                    data={filteredEvents}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={({ item }) => (
+                        <TouchableOpacity onPress={() => openEventDetails(item)}>
+                            <View
+                                style={[
+                                    styles.eventItem,
+                                    {
+                                        backgroundColor:
+                                            item.type === 'Event'
+                                                ? '#92D4F2'
+                                                : item.type === 'Homework'
+                                                ? '#A1D871'
+                                                : '#f4b22e',
+                                    },
+                                ]}
+                            >
+                                <Text style={styles.eventTime}>{item.time}</Text>
+                                <Text style={styles.eventTitle}>{item.title}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    )}
+                    ListEmptyComponent={<Text style={styles.noEventsText}>No events for this date</Text>}
+                />
+            </View>
         </View>
     );
 };
 
 // Styles
 const styles = StyleSheet.create({
+    headerButton: { marginRight: 16 },
     container: { flex: 1, padding: 10 },
-    eventsContainer: { marginTop: 20 },
-    sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10, color: 'black' },
-    eventItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    icon: { marginRight: 10 },
-    eventDetails: { flex: 1 },
-    eventTitle: { fontSize: 16, fontWeight: 'bold', color: 'black' },
-    eventType: { fontSize: 14, color: 'grey' },
-    eventDate: { fontSize: 14, color: 'grey' },
-    noEventsText: { fontSize: 16, color: 'grey', textAlign: 'center', marginTop: 20 },
-    fab: {
-        position: 'absolute',
-        right: 20,
-        bottom: 20,
-        backgroundColor: Colors.brandYellow,
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        alignItems: 'center',
-        justifyContent: 'center',
+    modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
+    modalContent: {
+        width: '90%',
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 20,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.8,
-        shadowRadius: 2,
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
         elevation: 5,
     },
-    modalContainer: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    modalContent: {
-        width: 300,
-        padding: 20,
-        backgroundColor: 'white',
-        borderRadius: 10,
-    },
-    modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
-    input: {
-        height: 40,
-        borderColor: 'gray',
-        borderWidth: 1,
-        borderRadius: 5,
-        marginBottom: 10,
+    modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10, textAlign: 'center', color: '#333' },
+    modalType: {
+        alignSelf: 'center',
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 14,
         paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 5,
+        textAlign: 'center',
+        marginBottom: 20,
     },
+    detailBox: {
+        backgroundColor: '#f9f9f9',
+        padding: 10,
+        borderRadius: 5,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: '#ddd',
+    },
+    detailLabel: { fontSize: 14, fontWeight: 'bold', color: '#555', marginBottom: 5 },
+    detailValue: { fontSize: 16, color: '#333' },
+    input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 5, padding: 10, marginBottom: 10, backgroundColor: '#f9f9f9' },
+    descriptionInput: { height: 80, textAlignVertical: 'top' },
+    modalButtons: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+    typeButton: { flex: 1, padding: 10, marginHorizontal: 5, borderRadius: 5, alignItems: 'center', borderWidth: 1, borderColor: '#ddd' },
+    typeButtonText: { fontWeight: 'bold' },
+    addButton: { backgroundColor: '#f4b22e', padding: 10, alignItems: 'center', borderRadius: 5 },
+    addButtonText: { color: '#fff', fontWeight: 'bold' },
+    closeButton: { marginTop: 10, alignItems: 'center', backgroundColor: '#ddd', padding: 10, borderRadius: 5 },
+    closeButtonText: { color: '#333', fontWeight: 'bold' },
+    filterContainer: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 },
+    filterButton: { flex: 1, alignItems: 'center', padding: 10, marginHorizontal: 5, borderRadius: 10, elevation: 4 },
+    filterText: { color: '#000', fontWeight: 'bold' },
+    eventsContainer: { marginTop: 20 },
+    sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+    eventItem: { padding: 10, marginBottom: 5, borderRadius: 10 },
+    eventTime: { fontSize: 16, color: '#555' },
+    eventTitle: { fontSize: 16, fontWeight: 'bold', color: '#333' },
+    noEventsText: { textAlign: 'center', marginTop: 20, fontSize: 16, color: '#999' },
 });
