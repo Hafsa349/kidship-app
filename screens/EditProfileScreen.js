@@ -3,15 +3,36 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'reac
 import { Colors } from '../config';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import { updateProfile } from 'firebase/auth';
+import { updateUser } from '../services/firebaseUserService';
+import { Timestamp } from 'firebase/firestore';
 
-export const EditProfileScreen = () => {
+const formatDateToDDMMYYYY = (dateObj) => {
+    if (!dateObj) return '';
+    const date = new Date(dateObj.seconds * 1000);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+};
+
+const formatDateToFirestore = (dateStr) => {
+    const [day, month, year] = dateStr.split('-');
+    return new Date(`${year}-${month}-${day}`);
+};
+
+export const EditProfileScreen = ({ route }) => {
     const navigation = useNavigation();
-    const [displayName, setDisplayName] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
-    const [dateOfBirth, setDateOfBirth] = useState(''); // Format: YYYY-MM-DD
+    const { userDetail } = route.params;
 
-    // Add a return button to the header
+    const [firstName, setFirstName] = useState(userDetail.firstName || '');
+    const [lastName, setLastName] = useState(userDetail.lastName || '');
+    const [phoneNumber, setPhoneNumber] = useState(userDetail.phoneNumber || '');
+    const [dateOfBirth, setDateOfBirth] = useState(
+        userDetail.dateOfBirth
+            ? formatDateToDDMMYYYY(userDetail.dateOfBirth)
+            : ''
+    );
+
     useLayoutEffect(() => {
         navigation.setOptions({
             headerLeft: () => (
@@ -22,32 +43,53 @@ export const EditProfileScreen = () => {
         });
     }, [navigation]);
 
+    const formatDateToFirestore = (dateStr) => {
+        const [day, month, year] = dateStr.split('-');
+        return new Date(`${year}-${month}-${day}`);
+    };
+
     const handleSave = async () => {
-        if (!displayName || !phoneNumber || !dateOfBirth) {
+        if (!firstName || !lastName || !phoneNumber || !dateOfBirth) {
             Alert.alert('Error', 'Please fill all the fields.');
             return;
         }
-
+    
         try {
-            await updateProfile(auth.currentUser, {
-                displayName,
-            });
+            const updates = {
+                firstName,
+                lastName,
+                phoneNumber,
+                dateOfBirth: Timestamp.fromDate(formatDateToFirestore(dateOfBirth)),
+            };
+    
+            await updateUser(userDetail.uid, updates); // Update Firestore
             Alert.alert('Success', 'Profile updated successfully.');
-            navigation.goBack(); // Navigate back after saving
+    
+            if (typeof route.params.refreshUserDetail === 'function') {
+                await route.params.refreshUserDetail(); // Refresh userDetail in TabNavigator
+            }
+    
+            navigation.goBack();
         } catch (error) {
             console.error('Error updating profile:', error);
             Alert.alert('Error', 'Failed to update profile.');
         }
     };
+    
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Edit Profile</Text>
             <TextInput
                 style={styles.input}
-                placeholder="Full Name"
-                value={displayName}
-                onChangeText={setDisplayName}
+                placeholder="First Name"
+                value={firstName}
+                onChangeText={setFirstName}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Last Name"
+                value={lastName}
+                onChangeText={setLastName}
             />
             <TextInput
                 style={styles.input}
@@ -58,7 +100,7 @@ export const EditProfileScreen = () => {
             />
             <TextInput
                 style={styles.input}
-                placeholder="Date of Birth (YYYY-MM-DD)"
+                placeholder="Date of Birth (DD-MM-YYYY)"
                 value={dateOfBirth}
                 onChangeText={setDateOfBirth}
             />
@@ -75,20 +117,13 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.white,
         padding: 20,
     },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        color: Colors.black,
-    },
     input: {
         borderWidth: 1,
-        borderColor: Colors.lightGrey,
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 16,
+        borderColor: '#ddd',
+        borderRadius: 10,
+        padding: 10,
         marginBottom: 20,
-        backgroundColor: Colors.lightGrey,
+        backgroundColor: '#f9f9f9',
     },
     saveButton: {
         backgroundColor: Colors.brandYellow,

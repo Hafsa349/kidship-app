@@ -9,7 +9,7 @@ export const fetchUserDetails = async (uid) => {
     }
 
     try {
-        const docRef = doc(db,  "users", uid);
+        const docRef = doc(db, "users", uid);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -24,6 +24,8 @@ export const fetchUserDetails = async (uid) => {
     }
 };
 
+
+
 // 2. Fetch Multiple User Details by IDs (Within a School)
 export const fetchUserDetailsByIds = async (userIds) => {
     if (!Array.isArray(userIds) || userIds.length === 0) {
@@ -34,7 +36,7 @@ export const fetchUserDetailsByIds = async (userIds) => {
     try {
         const userDetails = await Promise.all(
             userIds.map(async (uid) => {
-                const docRef = doc(db,  "users", uid);
+                const docRef = doc(db, "users", uid);
                 const docSnap = await getDoc(docRef);
 
                 return docSnap.exists()
@@ -57,12 +59,29 @@ export const createUser = async (uid, user) => {
     }
 
     try {
-        await setDoc(doc(db,  "users", uid), user, { merge: true });
+        await setDoc(doc(db, "users", uid), user, { merge: true });
         console.log(`User with ID ${uid} successfully created/updated.`);
     } catch (error) {
         console.error(`Error creating/updating user with ID ${uid}`, error);
     }
 };
+
+// Update a User's Details
+export const updateUser = async (uid, updates) => {
+    if (!uid || !updates) {
+        console.error("Invalid parameters for updateUser.");
+        return;
+    }
+    try {
+        const userRef = doc(db, "users", uid);
+        await updateDoc(userRef, updates);
+        console.log(`User with ID ${uid} updated successfully.`);
+    } catch (error) {
+        console.error("Error updating user:", error);
+        throw error;
+    }
+};
+
 
 // 4. Fetch User by Phone Number (Within a School)
 export const fetchUserByPhoneNumber = async (phoneNumber) => {
@@ -72,7 +91,7 @@ export const fetchUserByPhoneNumber = async (phoneNumber) => {
     }
 
     try {
-        const usersRef = collection(db,  "users");
+        const usersRef = collection(db, "users");
         const phoneQuery = query(usersRef, where("phoneNumber", "==", phoneNumber));
         const querySnapshot = await getDocs(phoneQuery);
 
@@ -88,27 +107,46 @@ export const fetchUserByPhoneNumber = async (phoneNumber) => {
     }
 };
 
+export const getUserDetails = async (userId) => {
+    try {
+        if (!userId) throw new Error("User ID is required to fetch user details");
+
+        const userDocRef = doc(db, "users", userId);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+            return userDoc.data(); // Return the user details
+        } else {
+            console.error("No such document exists for user:", userId);
+            return null;
+        }
+    } catch (error) {
+        console.error("Error fetching user details:", error);
+        throw error; // Optional: rethrow the error for handling elsewhere
+    }
+};
+
 export const fetchSchoolByEmailDomain = async (emailDomain) => {
-  if (!emailDomain) {
-      console.error("Invalid parameters in fetchSchoolByEmailDomain.");
-      return null;
-  }
+    if (!emailDomain) {
+        console.error("Invalid parameters in fetchSchoolByEmailDomain.");
+        return null;
+    }
 
-  try {
-      const usersRef = collection(db, "schools");
-      const phoneQuery = query(usersRef, where("emailDomain", "==", emailDomain));
-      const querySnapshot = await getDocs(phoneQuery);
+    try {
+        const usersRef = collection(db, "schools");
+        const phoneQuery = query(usersRef, where("emailDomain", "==", emailDomain));
+        const querySnapshot = await getDocs(phoneQuery);
 
-      if (!querySnapshot.empty) {
-          return querySnapshot.docs[0].data(); // Return the first matched document
-      } else {
-          console.warn(`No school found with email domain ${emailDomain}`);
-          return null;
-      }
-  } catch (error) {
-      console.error(`Error fetching school by email domain`, error);
-      return null;
-  }
+        if (!querySnapshot.empty) {
+            return querySnapshot.docs[0].data(); // Return the first matched document
+        } else {
+            console.warn(`No school found with email domain ${emailDomain}`);
+            return null;
+        }
+    } catch (error) {
+        console.error(`Error fetching school by email domain`, error);
+        return null;
+    }
 };
 
 export const fetchSchoolByName = async (name) => {
@@ -119,11 +157,11 @@ export const fetchSchoolByName = async (name) => {
 
     try {
         const usersRef = collection(db, "schools");
-        
+
         // To perform a "starts with" query, we use `startAt` and `endAt`
         // It will match names that start with the provided `name` value
         const nameQuery = query(
-            usersRef, 
+            usersRef,
             where("name", ">=", name), // Start at the name
             where("name", "<", name + '\uf8ff') // End at the end of the name string
         );
@@ -179,7 +217,7 @@ export const getLikes = async (postId) => {
     }
 
     try {
-        const likesSnapshot = await getDocs(collection(db,  "posts", postId, "likes"));
+        const likesSnapshot = await getDocs(collection(db, "posts", postId, "likes"));
         return likesSnapshot.docs.map(doc => doc.id); // Return user IDs who liked
     } catch (error) {
         console.error(`Error fetching likes for post ${postId}`, error);
@@ -202,7 +240,7 @@ export const addComment = async (postId, commentText, authorId) => {
             createdAt: currentDateTime,
         };
 
-        await addDoc(collection(db,  "posts", postId, "comments"), newComment);
+        await addDoc(collection(db, "posts", postId, "comments"), newComment);
         console.log(`Added comment by user ${authorId} to post ${postId}`);
     } catch (error) {
         console.error(`Error adding comment to post ${postId}`, error);
@@ -210,7 +248,7 @@ export const addComment = async (postId, commentText, authorId) => {
 };
 
 // 8. Get All Comments for a Post (Within a School)
-export const getComments = async ( postId) => {
+export const getComments = async (postId) => {
     if (!postId) {
         console.error("Invalid parameters in getComments.");
         return [];

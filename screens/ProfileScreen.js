@@ -1,25 +1,15 @@
-import React, { useContext, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Alert, Image } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
 import { Colors } from '../config';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config';
-import { onAuthStateChanged } from 'firebase/auth';
-import { AuthenticatedUserContext } from '../providers';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Button } from '../components';
+import { useFocusEffect } from '@react-navigation/native';
 
-export const ProfileScreen = ({ navigation }) => {
-    const { user, setUser } = useContext(AuthenticatedUserContext);
-
-    useEffect(() => {
-        const unsubscribeAuthStateChanged = onAuthStateChanged(
-            auth,
-            (authenticatedUser) => {
-                setUser(authenticatedUser);
-            }
-        );
-        return unsubscribeAuthStateChanged;
-    }, [setUser]);
+export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail }) => {
+    // console.log('User in ProfileScreen:', user);
+    // console.log('User Details in ProfileScreen:', userDetail);
 
     const handleSignOut = async () => {
         Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -29,7 +19,6 @@ export const ProfileScreen = ({ navigation }) => {
                 onPress: async () => {
                     try {
                         await signOut(auth);
-                        setUser(null); // Reset user
                         navigation.reset({
                             index: 0,
                             routes: [{ name: 'LoginScreen' }],
@@ -43,33 +32,51 @@ export const ProfileScreen = ({ navigation }) => {
     };
 
     const navigateToScreen = (screen) => {
-        navigation.navigate(screen);
+        navigation.navigate(screen, {user, userDetail});
     };
+    const navigateToEditProfile = () => {
+        navigation.navigate('EditProfileScreen', { 
+            userDetail: {
+                firstName: userDetail.firstName,
+                lastName: userDetail.lastName,
+                phoneNumber: userDetail.phoneNumber,
+                dateOfBirth: userDetail.dateOfBirth,
+                uid: userDetail.uid
+            } 
+        });
+    };
+
+    useFocusEffect(
+        React.useCallback(() => {
+            refreshUserDetail(); // Fetch updated user details
+        }, [])
+    );
+
 
     return (
         <View style={styles.container}>
-            {/* Header Section */}
-            <View style={styles.header}>
-                <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>
-                        {user?.displayName
-                            ? user.displayName
-                                .split(' ')
-                                .map((name) => name[0])
-                                .join('')
-                            : 'Hi'}
-                    </Text>
-                </View>
-                <Text style={styles.nameText}>{user?.displayName || ''}</Text>
-                <Text style={styles.emailText}>{user?.email || 'Email Not Available'}</Text>
+        {/* Header Section */}
+        <View style={styles.header}>
+            <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                    {userDetail?.firstName
+                        ? userDetail.firstName[0]+userDetail.lastName[0]
+                        : 'Hi'}
+                </Text>
             </View>
-
+            <Text style={styles.nameText}>
+                {userDetail?.firstName || ''} {userDetail?.lastName || ''}
+            </Text>
+            <Text style={styles.emailText}>
+                {userDetail?.email || 'Email Not Available'}
+            </Text>
+        </View>
             {/* Options Section */}
             <View style={styles.options}>
                 <TouchableOpacity
                     style={styles.optionItem}
-                    onPress={() => navigateToScreen('EditProfileScreen')}
-                >
+                    onPress={navigateToEditProfile}
+                    >
                     <View style={styles.optionIcon}>
                         <Ionicons name="person-circle-outline" size={24} color={Colors.brandYellow} />
                     </View>

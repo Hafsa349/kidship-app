@@ -52,6 +52,17 @@ export const TabNavigator = () => {
         fetchUserData();
     }, [user]);
 
+    const refreshUserDetail = async () => {
+        if (user?.uid) {
+            try {
+                const userDetails = await fetchUserDetails(user.uid); // Fetch updated details from Firestore
+                setUserDetail(userDetails); // Update state
+            } catch (error) {
+                console.error('Error refreshing user details:', error);
+            }
+        }
+    };
+
     // Decide which stack to show based on user authentication status
     const getTabScreen = () => {
         console.log(' userDetail object', userDetail)
@@ -92,47 +103,58 @@ export const TabNavigator = () => {
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
-   
+
                 {allowEditing &&
-                    <Tab.Screen 
-                    name="Create Post" 
-                    component={user ? CreatePostScreen : AuthStack} 
+                    <Tab.Screen
+                        name="Create Post"
+                        component={user ? CreatePostScreen : AuthStack}
+                        options={{
+                            tabBarLabel: 'Post',
+                            tabBarActiveTintColor: Colors.mediumGray,
+                            tabBarInactiveTintColor: Colors.mediumGray,
+                            tabBarIcon: ({ focused }) => (
+                                <Icon name={focused ? "plus-circle" : "plus-circle-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
+                                    style={{ marginRight: 0 }} />
+                            ),
+                        }} />
+                }
+                <Tab.Screen
+                    name="Events"
+                    children={({ navigation }) => (
+                        <CalendarScreen navigation={navigation} allowEditing={allowEditing} />
+                    )}
                     options={{
-                        tabBarLabel: 'Post',
+                        tabBarLabel: 'Calendar',
                         tabBarActiveTintColor: Colors.mediumGray,
                         tabBarInactiveTintColor: Colors.mediumGray,
                         tabBarIcon: ({ focused }) => (
-                            <Icon name={focused ? "plus-circle" : "plus-circle-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
+                            <Ionicons name={focused ? "calendar" : "calendar-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
                                 style={{ marginRight: 0 }} />
                         ),
                     }} />
-                }
-                <Tab.Screen 
-                name="Events" 
-                children={({ navigation }) => (
-                    <CalendarScreen navigation={navigation} allowEditing={allowEditing} />
-                )}
-                options={{
-                    tabBarLabel: 'Calendar',
-                    tabBarActiveTintColor: Colors.mediumGray,
-                    tabBarInactiveTintColor: Colors.mediumGray,
-                    tabBarIcon: ({ focused }) => (
-                        <Ionicons name={focused ? "calendar" : "calendar-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
-                            style={{ marginRight: 0 }} />
-                    ),
-                }} />
-                <Tab.Screen name="Profile"
-                    children={() => <ProfileStack user={user} />}
+                <Tab.Screen
+                    name="Profile"
+                    children={(props) => (
+                        <ProfileStack
+                            {...props}
+                            user={user}
+                            userDetail={userDetail}
+                            refreshUserDetail={refreshUserDetail}
+                        />
+                    )}
                     options={{
                         headerShown: false,
                         tabBarLabel: 'Profile',
-                        tabBarActiveTintColor: Colors.mediumGray,
-                        tabBarInactiveTintColor: Colors.mediumGray,
                         tabBarIcon: ({ focused }) => (
-                            <Ionicons name={(focused ? 'person-circle' : 'person-circle-outline')} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
-                                style={{ marginRight: 0 }} />
+                            <Ionicons
+                                name={focused ? 'person-circle' : 'person-circle-outline'}
+                                color={focused ? Colors.brandBlue : Colors.mediumGray}
+                                size={28}
+                            />
                         ),
-                    }} />
+                    }}
+                />
+
             </Tab.Navigator>
         );
     };

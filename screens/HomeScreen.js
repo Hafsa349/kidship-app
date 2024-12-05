@@ -23,6 +23,7 @@ export const HomeScreen = ({ navigation }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       console.log('User object:', user); // Debugging
+
       if (user && user.uid) {
         try {
           const userDetails = await fetchUserDetails(user.uid);
