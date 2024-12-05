@@ -18,7 +18,6 @@ export const PostDetailScreen = ({ navigation, route }) => {
     try {
       // Fetch comments for the current post
       const fetchedComments = await getComments(post.id);
-      console.log(fetchedComments);
 
       // Sort comments by the createdAt field in descending order (latest first)
       const sortedComments = fetchedComments.sort((a, b) => b.createdAt - a.createdAt);
@@ -74,6 +73,10 @@ export const PostDetailScreen = ({ navigation, route }) => {
     setLoading(false);
   };
 
+  const renderInitials = (firstName, lastName) => {
+    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
+  };
+
   return (
     <>
       <KeyboardAvoidingView
@@ -91,11 +94,11 @@ export const PostDetailScreen = ({ navigation, route }) => {
               ) : (
                 <View style={styles.initialsContainer}>
                   <Text style={styles.initialsText}>
-                    {post.authorDetails?.firstName?.[0] || ''}{post.authorDetails?.lastName?.[0] || ''}
+                    {renderInitials(post.authorDetails?.firstName, post.authorDetails?.lastName)}
                   </Text>
                 </View>
               )}
-              <Text style={styles.authorName}>{post.authorDetails?.firstName || 'Unknown'}</Text>
+              <Text style={styles.authorName}>{post.authorDetails?.firstName || ''}</Text>
             </View>
             <Image source={{ uri: post.image_url }} style={styles.image} />
 
@@ -117,11 +120,8 @@ export const PostDetailScreen = ({ navigation, route }) => {
               <Text style={styles.postTime}>{post.timeAgo}</Text>
               <Text style={styles.postText}>{post.text}</Text>
             </View>
-
-            {/* Comments Section */}
-
             <Text style={styles.title}>Comments</Text>
-            <View style={styles.commentsList}>
+            {comments.length > 0 ? (<View style={styles.commentsList}>
               {comments.map((comment, index) => {
                 const author = authorDetailsMap[comment.authorId]; // Get the author from the map
                 return (
@@ -135,7 +135,7 @@ export const PostDetailScreen = ({ navigation, route }) => {
                       ) : (
                         <View style={styles.initialsContainer}>
                           <Text style={styles.initialsText}>
-                            {author?.firstName?.[0] || ''}{author?.lastName?.[0] || ''}
+                            {renderInitials(author?.firstName, author?.lastName)}
                           </Text>
                         </View>
                       )}
@@ -145,7 +145,12 @@ export const PostDetailScreen = ({ navigation, route }) => {
                   </View>
                 );
               })}
-            </View>
+            </View>) : (
+              <View>
+                <Text style={styles.commentText}>{'No comments found'}</Text>
+              </View>
+            )}
+
           </View>
         </ScrollView>
 
@@ -178,7 +183,8 @@ const styles = StyleSheet.create({
   title: {
     marginTop: 10,
     fontSize: 18,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    marginLeft: 10,
   },
   contentContainer: {
     paddingBottom: 80,  // Space for the sticky comment input box
@@ -278,6 +284,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: Colors.lightGrey,
+
   },
   commentHeader: {
     flexDirection: 'row',
@@ -289,6 +296,7 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: 15,
     marginRight: 10,
+    marginLeft: 8
   },
   commentUserName: {
     fontWeight: 'bold',
@@ -297,18 +305,19 @@ const styles = StyleSheet.create({
   commentText: {
     fontSize: 16,
     color: Colors.darkGrey,
-    marginLeft: 40,
+    marginLeft: 48,
   },
   initialsContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.grey,
+    marginRight: 8,
+    backgroundColor: Colors.lightGrey,
     justifyContent: 'center',
     alignItems: 'center',
   },
   initialsText: {
-    color: Colors.white,
+    color: Colors.black,
     fontWeight: 'bold',
     fontSize: 18,
   },

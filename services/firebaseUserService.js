@@ -26,8 +26,7 @@ export const fetchUserDetails = async (uid) => {
 
 // 2. Fetch Multiple User Details by IDs (Within a School)
 export const fetchUserDetailsByIds = async (userIds) => {
-    if (!Array.isArray(userIds) || userIds.length === 0) {
-        console.error("Invalid userIds in fetchUserDetailsByIds.");
+    if (userIds && !Array.isArray(userIds) || userIds.length === 0) {
         return [];
     }
 

@@ -1,34 +1,69 @@
-import React, { useState } from 'react';
-import { Text, TouchableOpacity, View, TextInput, Image, StyleSheet } from 'react-native';
+import React, { useState, useContext } from 'react';
+import {
+    Text,
+    TouchableOpacity,
+    View,
+    TextInput,
+    Image,
+    StyleSheet,
+    ActivityIndicator,
+    Modal,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Colors } from '../config';
 import { storage } from '../config';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Button } from '../components';
 import { addPost } from '../services';
+import { SchoolContext, AuthenticatedUserContext } from '../providers';
 
 export const CreatePostScreen = ({ navigation }) => {
     const [caption, setCaption] = useState('');
     const [image, setImage] = useState(null);
-    const [uploadProgress, setUploadProgress] = useState(0); // Track upload progress
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [isUploading, setIsUploading] = useState(false);
+    const { schoolDetail } = useContext(SchoolContext);
+    const { user } = useContext(AuthenticatedUserContext);
+    const compressImage = async (uri) => {
+        try {
+            console.log('Compressing Image URI:', uri);
+            const compressedImage = await ImageManipulator.manipulateAsync(
+                uri,
+                [{ resize: { width: 800 } }], // Resize to 800px width
+                { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Compress to 70%
+            );
+            console.log('Compressed Image URI:', compressedImage.uri);
+            return compressedImage.uri;
+        } catch (error) {
+            console.warn('Image compression failed, using original image.', error);
+            return uri; // Return the original URI as a fallback
+        }
+    };
 
     const pickImage = async () => {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-            alert('Permission to access the media library is required!');
-            return;
-        }
+        try {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                alert('Permission to access the media library is required!');
+                return;
+            }
 
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
-            allowsEditing: true,
-            aspect: [5, 4],
-            quality: 1,
-        });
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [5, 4],
+                quality: 1,
+            });
 
-        if (!result.canceled) {
-            setImage(result.assets[0].uri);
+            if (!result.canceled) {
+                const compressedUri = await compressImage(result.assets[0].uri);
+                setImage(compressedUri);
+            }
+        } catch (error) {
+            console.error('Error picking image:', error);
+            alert('An error occurred while picking the image.');
         }
     };
 
@@ -38,42 +73,64 @@ export const CreatePostScreen = ({ navigation }) => {
             return;
         }
 
-        const imageUri = image;
-        const response = await fetch(imageUri);
-        const blob = await response.blob();
+        setIsUploading(true); // Block screen with ActivityIndicator
 
-        const imageRef = ref(storage, `posts/${Date.now()}`);
-        const uploadTask = uploadBytesResumable(imageRef, blob);
-
-        uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-                // Calculate upload progress
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setUploadProgress(progress); // Update progress state
-            },
-            (error) => {
-                alert('Error uploading image: ' + error.message);
-            },
-            async () => {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                const post = {
-                    caption,
-                    imageUrl: downloadURL,
-                    createdAt: new Date(),
-                    isActive: true,
-                };
-
-                try {
-                    await addPost(post, user.uid);
-                    alert('Post shared successfully!');
-                    navigation.goBack();
-                } catch (error) {
-                    console.error('Error adding post: ', error);
-                    alert('Failed to share the post');
-                }
+        try {
+            const response = await fetch(image);
+            if (!response.ok) {
+                throw new Error('Failed to fetch the image for upload.');
             }
-        );
+
+            const blob = await response.blob();
+            const imageRef = ref(storage, `posts/${Date.now()}`);
+            const uploadTask = uploadBytesResumable(imageRef, blob);
+
+            uploadTask.on(
+                'state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    setUploadProgress(progress);
+                    console.log(`Upload is ${progress}% done`);
+                },
+                (error) => {
+                    console.error('Upload error:', error);
+                    alert('Error during upload: ' + error.message);
+                    setIsUploading(false); // Allow interaction after error
+                },
+                async () => {
+                    try {
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        console.log('File available at:', downloadURL);
+
+                        const post = {
+                            text: caption,
+                            image_url: downloadURL,
+                            createdAt: new Date(),
+                            isActive: true,
+                            authorId: user.uid,
+                            schoolId: schoolDetail
+                        };
+
+                        await addPost(post);
+                        alert('Post shared successfully!');
+                        setCaption('');
+                        setImage(null);
+                        setUploadProgress(0);
+                        navigation.goBack();
+
+                    } catch (error) {
+                        console.error('Error saving post:', error);
+                        alert('Failed to save the post.');
+                    } finally {
+                        setIsUploading(false); // Allow interaction after upload
+                    }
+                }
+            );
+        } catch (error) {
+            console.error('Error handling share:', error);
+            alert('An unexpected error occurred while sharing the post.');
+            setIsUploading(false); // Allow interaction after error
+        }
     };
 
     return (
@@ -92,22 +149,28 @@ export const CreatePostScreen = ({ navigation }) => {
 
                 <TextInput
                     style={styles.captionInput}
-                    placeholder="Write something about post ..."
+                    placeholder="Write something about the post ..."
                     multiline={true}
                     value={caption}
-                    onChangeText={(newValue) => setCaption(newValue)}
+                    onChangeText={setCaption}
                 />
-
-                {uploadProgress > 0 && uploadProgress < 100 && (
-                    <Text style={styles.progressText}>
-                        Uploading... {Math.round(uploadProgress)}%
-                    </Text>
-                )}
 
                 <Button style={styles.button} onPress={handleShare}>
                     <Text style={styles.buttonText}>Share</Text>
                 </Button>
             </View>
+
+            {/* Modal to block screen while uploading */}
+            {isUploading && (
+                <Modal transparent={true} animationType="fade">
+                    <View style={styles.uploadOverlay}>
+                        <ActivityIndicator size="large" color={Colors.brandYellow} />
+                        <Text style={styles.uploadText}>
+                            Uploading... {Math.round(uploadProgress)}%
+                        </Text>
+                    </View>
+                </Modal>
+            )}
         </View>
     );
 };
@@ -144,9 +207,8 @@ const styles = StyleSheet.create({
         width: '100%',
         padding: 3,
         borderRadius: 10,
-        border: 1,
-        borderColor: Colors.brandYellow,
         borderWidth: 1,
+        borderColor: Colors.brandYellow,
         padding: 12,
     },
     button: {
@@ -164,9 +226,16 @@ const styles = StyleSheet.create({
         color: Colors.brandBlue,
         fontWeight: '700',
     },
-    progressText: {
-        marginVertical: 10,
-        fontSize: 16,
-        color: 'gray',
+    uploadOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    },
+    uploadText: {
+        marginTop: 16,
+        fontSize: 18,
+        color: Colors.brandYellow,
+        fontWeight: 'bold',
     },
 });

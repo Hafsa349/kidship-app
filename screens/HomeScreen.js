@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { Dimensions, StyleSheet, View, ActivityIndicator, Text, Image, FlatList, TouchableOpacity } from 'react-native';
 import { Colors, auth } from '../config';
 import { HeaderComponent } from '../components';
@@ -7,26 +7,26 @@ import { AuthenticatedUserContext, SchoolContext } from '../providers';
 import { fetchUserDetailsByIds, fetchUserDetails, getPosts, toggleLike, getLikes, getComments } from '../services';
 import { formatDateToDays } from '../utils';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useFocusEffect } from '@react-navigation/native';
 
 const screenWidth = Dimensions.get('window').width;
 
 export const HomeScreen = ({ navigation }) => {
   const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Single loading state
   const [likeLoading, setLikeLoading] = useState({});
   const { user, setUser } = useContext(AuthenticatedUserContext);
   const { schoolDetail, setSchoolDetail } = useContext(SchoolContext);
   const [userDetail, setUserDetail] = useState({});
   const [schoolId, setSchoolId] = useState('');
+  const [refreshing, setRefreshing] = useState(false); // State for pull-to-refresh
 
   // Fetch user details and populate schoolId
   useEffect(() => {
     const fetchUserData = async () => {
-      console.log('User object:', user); // Debugging
       if (user && user.uid) {
         try {
           const userDetails = await fetchUserDetails(user.uid);
-          console.log('Fetched user details:', userDetails); // Debugging
           setSchoolId(userDetails.schoolId);
           setSchoolDetail(userDetails.schoolId);
           setUserDetail(userDetails);
@@ -40,67 +40,71 @@ export const HomeScreen = ({ navigation }) => {
   }, [user]);
 
   // Fetch posts based on schoolId
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!schoolId) {
-        console.log('No schoolId available yet.');
+  const fetchPosts = useCallback(async () => {
+    if (!schoolId) {
+      console.log('No schoolId available yet.');
+      return;
+    }
+
+    setLoading(true); // Start loading indicator
+    setRefreshing(true); // Start refreshing indicator
+
+    try {
+      const postData = await getPosts(schoolId);
+      if (!postData || postData.length === 0) {
+        setLoading(false);
+        setRefreshing(false);
         return;
       }
-      setLoading(true);
-      try {
-        console.log('School Id', schoolId);
-        const postData = await getPosts(schoolId);
-        console.log('Fetched posts:', !postData && postData.length == 0);
-        if (postData.length == 0) {
-          console.log('Fetched posts not found for School id:', schoolId);
-          setLoading(false);
-          return;
-        }
-        console.log('Fetched posts:', postData);
-        const userIds = postData.map(post => post.authorId).filter(id => id);
-        const uniqueUserIds = [...new Set(userIds)];
-        console.log(uniqueUserIds, schoolId);
-        const authorDetailsArray = uniqueUserIds.length > 0 ? (await fetchUserDetailsByIds(uniqueUserIds)) : [];
-        const authorDetailsMap = Object.fromEntries(
-          authorDetailsArray.map(user => [user.uid, user])
-        );
 
-        const postsWithCommentCounts = await Promise.all(postData.map(async (post) => {
-          const postLikes = await getLikes(post.id);
-          const postComments = await getComments(post.id);
+      const userIds = postData.map(post => post.authorId).filter(Boolean);
+      const uniqueUserIds = [...new Set(userIds)];
+      const authorDetailsArray = uniqueUserIds.length > 0 ? await fetchUserDetailsByIds(uniqueUserIds) : [];
+      const authorDetailsMap = Object.fromEntries(
+        authorDetailsArray.map(user => [user.uid, user])
+      );
 
-          return {
-            ...post,
-            likes: postLikes.length,
-            isLiked: postLikes.includes(user.uid),
-            commentsCount: postComments.length,
-            authorDetails: authorDetailsMap[post.authorId] || {
-              name: 'Unknown',
-              image_url: 'unknown',
-            },
-          };
-        }));
+      const postsWithDetails = await Promise.all(postData.map(async (post) => {
+        const postLikes = await getLikes(post.id);
+        const postComments = await getComments(post.id);
 
-        const sortedPosts = postsWithCommentCounts.sort((a, b) => {
-          const dateA = a.createdAt?.seconds * 1000 + a.createdAt?.nanoseconds / 1000000;
-          const dateB = b.createdAt?.seconds * 1000 + b.createdAt?.nanoseconds / 1000000;
-          return dateB - dateA;
-        });
+        return {
+          ...post,
+          likes: postLikes.length,
+          isLiked: postLikes.includes(user.uid),
+          commentsCount: postComments.length,
+          authorDetails: authorDetailsMap[post.authorId] || {
+            name: 'Unknown',
+            image_url: 'unknown',
+          },
+        };
+      }));
 
-        setPosts(sortedPosts);
-      } catch (error) {
-        console.error('Error fetching posts or user details:', error);
-      }
-      setLoading(false);
-    };
+      const sortedPosts = postsWithDetails.sort((a, b) => {
+        const dateA = a.createdAt?.seconds * 1000 + a.createdAt?.nanoseconds / 1000000;
+        const dateB = b.createdAt?.seconds * 1000 + b.createdAt?.nanoseconds / 1000000;
+        return dateB - dateA;
+      });
 
-    fetchData();
-  }, [schoolId]);
+      setPosts(sortedPosts);
+    } catch (error) {
+      console.error('Error fetching posts or user details:', error);
+    }
+
+    setLoading(false); // Stop loading indicator
+    setRefreshing(false); // Stop refreshing indicator
+  }, [schoolId, user.uid]);
+
+  // Trigger fetchPosts whenever screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      fetchPosts();
+    }, [fetchPosts])
+  );
 
   // Listen for authentication changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, authenticatedUser => {
-      console.log('Authentication state changed:', authenticatedUser); // Debugging
       setUser(authenticatedUser);
     });
 
@@ -132,85 +136,96 @@ export const HomeScreen = ({ navigation }) => {
     }
   };
 
+  // Function to get initials from name
+  const getInitials = (firstName, lastName) => {
+    const firstInitial = firstName ? firstName.charAt(0).toUpperCase() : '';
+    const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
+    return `${firstInitial}${lastInitial}`;
+  };
+
   const renderPost = ({ item }) => {
     const displayName = `${item.authorDetails?.firstName || ''}`.trim();
     const createdAt = formatDateToDays(item.createdAt);
 
     return (
-      <>
-        <TouchableOpacity
-          style={styles.postCard}
-          onPress={() => navigation.navigate('PostDetailScreen', { post: item, uid: user.uid })}
-        >
-          {displayName && (
-            <View style={styles.postHeader}>
-              <Image
-                source={{ uri: item.authorDetails?.image_url || 'https://path/to/dummy-avatar.png' }}
-                style={styles.avatar}
-              />
-              <View style={styles.headerContent}>
-                <Text style={styles.authorName}>{displayName}</Text>
-                <Text style={styles.createdAt}>{createdAt}</Text>
-              </View>
-            </View>
-          )}
-          <Image source={{ uri: item.image_url }} style={styles.postImage} />
-          <View style={styles.interactionContainer}>
-            <TouchableOpacity onPress={() => handleLike(item.id)} style={styles.likesContainer}>
-              {likeLoading[item.id] ? (
-                <ActivityIndicator size="small" color={Colors.orange} />
-              ) : (
-                <Icon
-                  name={item.isLiked ? "heart" : "heart-outline"}
-                  size={16}
-                  color={Colors.brandYellow}
+      <TouchableOpacity
+        style={styles.postCard}
+        onPress={() => navigation.navigate('PostDetailScreen', { post: item, uid: user.uid })}
+      >
+        {displayName && (
+          <View style={styles.postHeader}>
+            <View style={styles.avatarContainer}>
+              {item.authorDetails?.image_url ? (
+                <Image
+                  source={{ uri: item.authorDetails.image_url }}
+                  style={styles.avatar}
                 />
+              ) : (
+                <View style={styles.avatarFallback}>
+                  <Text style={styles.avatarFallbackText}>
+                    {getInitials(item.authorDetails?.firstName, item.authorDetails?.lastName)}
+                  </Text>
+                </View>
               )}
-              <Text style={styles.likes}>{item.likes} {item.likes === 1 ? 'like' : 'likes'}</Text>
-            </TouchableOpacity>
-            <View style={styles.commentsContainer}>
-              <Icon name="chatbubble-outline" size={20} color={Colors.primary} />
-              <Text style={styles.comments}>{item.commentsCount} {item.commentsCount === 1 ? 'comment' : 'comments'}</Text>
+            </View>
+            <View style={styles.headerContent}>
+              <Text style={styles.authorName}>{displayName}</Text>
+              <Text style={styles.createdAt}>{createdAt}</Text>
             </View>
           </View>
-          <Text style={styles.postText}>
-            {item.text.length > 250 ? item.text.slice(0, 250) + '...' : item.text}
-          </Text>
-          <Text style={styles.postTime}>{item.timeAgo}</Text>
-        </TouchableOpacity>
-      </>
+        )}
+        <Image source={{ uri: item.image_url }} style={styles.postImage} />
+        <View style={styles.interactionContainer}>
+          <TouchableOpacity onPress={() => handleLike(item.id)} style={styles.likesContainer}>
+            {likeLoading[item.id] ? (
+              <ActivityIndicator size="small" color={Colors.orange} />
+            ) : (
+              <Icon
+                name={item.isLiked ? "heart" : "heart-outline"}
+                size={16}
+                color={Colors.brandYellow}
+              />
+            )}
+            <Text style={styles.likes}>{item.likes} {item.likes === 1 ? 'like' : 'likes'}</Text>
+          </TouchableOpacity>
+          <View style={styles.commentsContainer}>
+            <Icon name="chatbubble-outline" size={20} color={Colors.primary} />
+            <Text style={styles.comments}>{item.commentsCount} {item.commentsCount === 1 ? 'comment' : 'comments'}</Text>
+          </View>
+        </View>
+        <Text style={styles.postText}>
+          {item.text.length > 250 ? item.text.slice(0, 250) + '...' : item.text}
+        </Text>
+        <Text style={styles.postTime}>{item.timeAgo}</Text>
+      </TouchableOpacity>
     );
   };
-
-  if (loading) {
-    return (
-      <>
-        <HeaderComponent navigation={navigation} />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-        </View>
-      </>
-    );
-  }
 
   return (
     <>
       <HeaderComponent title="" navigation={navigation} />
 
-      {posts?.length > 0 &&
-        <FlatList
-          data={posts}
-          renderItem={renderPost}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.container}
-        />
+      <FlatList
+        data={posts}
+        renderItem={renderPost}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.container}
+        refreshing={refreshing} // Display the pull-to-refresh indicator
+        onRefresh={fetchPosts} // Trigger the fetchPosts function on pull-to-refresh
+        ListEmptyComponent={
+          !loading && !refreshing ? (
+            <View style={styles.noPosts}>
+              <Text style={styles.comments}>No posts found</Text>
+            </View>
+          ) : null
+        }
+      />
 
-      }
-      {posts?.length == 0 &&
-        <View style={styles.noPosts}>
-          <Text style={styles.comments}>No posts found</Text>
+      {(loading || refreshing) && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
         </View>
-      }
+      )}
     </>
   );
 };
@@ -241,21 +256,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
-    justifyContent: 'space-between',
   },
-  headerContent: {
-    flex: 1,
-  },
-  avatar: {
+  avatarContainer: {
     width: 50,
     height: 50,
-    borderRadius: 20,
+    borderRadius: 25,
+    overflow: 'hidden',
     marginRight: 10,
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 25,
+  },
+  avatarFallback: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 25,
+    backgroundColor: Colors.lightGrey,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarFallbackText: {
+    fontSize: 18,
+    color: Colors.black,
+    fontWeight: 'bold',
   },
   createdAt: {
     fontSize: 14,
     color: Colors.grey,
-    textAlign: 'left',
   },
   authorName: {
     fontWeight: 'bold',
