@@ -1,5 +1,5 @@
 //index.js 
-import { MoreAppStack } from './MoreNavigationStack';
+import { ProfileStack } from './ProfileNavigationStack';
 import { AppStack } from './AppStack';
 import { AuthStack } from './AuthStack';
-export { MoreAppStack, AppStack, AuthStack };
+export { ProfileStack, AppStack, AuthStack };

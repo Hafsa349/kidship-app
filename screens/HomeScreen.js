@@ -24,6 +24,11 @@ export const HomeScreen = ({ navigation }) => {
   // Fetch user details and populate schoolId
   useEffect(() => {
     const fetchUserData = async () => {
+<<<<<<< HEAD
+=======
+      console.log('User object:', user); // Debugging
+
+>>>>>>> 20a234dd5dfc91fa99598afec51c7e54e951971f
       if (user && user.uid) {
         try {
           const userDetails = await fetchUserDetails(user.uid);

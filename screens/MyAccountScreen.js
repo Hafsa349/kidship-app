@@ -83,7 +83,6 @@ export const MyAccountScreen = ({ route, navigation }) => {
 
   return (
     <>
-      <HeaderComponent navigation={navigation} title="My Account" navigationTo={navigationTo} />
       <View isSafe style={styles.container}>
         <KeyboardAwareScrollView enableOnAndroid={true}>
           <Formik

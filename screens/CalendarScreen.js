@@ -1,9 +1,12 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import { SchoolContext } from '../providers';
-import { addEvent, getEvents } from '../services/firebasePublicDataService';
+import { AuthenticatedUserContext, SchoolContext } from '../providers';
+import { addEvent, getEvents, deleteEvent } from '../services/firebasePublicDataService';
+import { setDoc, doc } from 'firebase/firestore';
+import { db } from '../config';
+
 
 const formatDateToDDMMYYYY = (date) => {
     if (!date) return ''; // Return an empty string if date is undefined or null
@@ -11,7 +14,8 @@ const formatDateToDDMMYYYY = (date) => {
 };
 const formatDateToYYYYMMDD = (date) => date.split('-').reverse().join('-'); // Convert DD-MM-YYYY to YYYY-MM-DD
 
-export const CalendarScreen = ({ allowEditing, navigation })  => {
+export const CalendarScreen = ({ allowEditing, navigation }) => {
+    const { user } = useContext(AuthenticatedUserContext); // Get the authenticated user from context
     const todayDate = new Date().toISOString().split('T')[0];
     const [selectedType, setSelectedType] = useState('All'); // Filter type
     const [selectedDate, setSelectedDate] = useState(todayDate); // Default to today's date
@@ -27,6 +31,8 @@ export const CalendarScreen = ({ allowEditing, navigation })  => {
         time: '',
     });
     const { schoolDetail } = useContext(SchoolContext);
+    const isEditMode = !!newEvent.id; // true if editing, false if adding
+
 
     // Fetch events from Firestore
     const fetchEvents = async () => {
@@ -58,45 +64,6 @@ export const CalendarScreen = ({ allowEditing, navigation })  => {
         fetchEvents();
     }, [schoolDetail]);
 
-    const handleAddEvent = async () => {
-        if (!newEvent.title || !newEvent.time || !newEvent.description) {
-            alert('Please fill all fields.');
-            return;
-        }
-
-        if (!schoolDetail) {
-            alert('School ID is missing.');
-            return;
-        }
-
-        const eventToSave = {
-            title: newEvent.title,
-            type: newEvent.type,
-            description: newEvent.description,
-            date: formatDateToYYYYMMDD(newEvent.date), // Save as YYYY-MM-DD
-            time: newEvent.time,
-            schoolId: schoolDetail,
-        };
-
-        try {
-            const addedEvent = await addEvent(eventToSave);
-            if (addedEvent) {
-                alert('Event added successfully!');
-                setAddEventModalVisible(false);
-                setNewEvent({
-                    title: '',
-                    type: 'Event',
-                    description: '',
-                    date: formatDateToDDMMYYYY(todayDate),
-                    time: '',
-                });
-                fetchEvents(); // Refresh events after adding
-            }
-        } catch (error) {
-            console.error('Error adding event:', error);
-            alert('Failed to add event.');
-        }
-    };
     // Add Events Button
     useEffect(() => {
         if (allowEditing) {
@@ -116,7 +83,99 @@ export const CalendarScreen = ({ allowEditing, navigation })  => {
             });
         }
     }, [navigation, allowEditing]);
-    
+
+    const handleAddEvent = async () => {
+        if (!newEvent.title || !newEvent.time || !newEvent.description) {
+            alert('Please fill all fields.');
+            return;
+        }
+
+        if (!schoolDetail) {
+            alert('School ID is missing.');
+            return;
+        }
+
+        const eventToSave = {
+            title: newEvent.title,
+            type: newEvent.type,
+            description: newEvent.description,
+            date: formatDateToYYYYMMDD(newEvent.date), // Save as YYYY-MM-DD
+            time: newEvent.time,
+            schoolId: schoolDetail,
+            userId: user?.uid, // Add userId for ownership
+        };
+
+        try {
+            if (newEvent.id) {
+                // Editing an existing event
+                const eventDoc = doc(db, 'events', newEvent.id); // Reference the existing document
+                await setDoc(eventDoc, eventToSave, { merge: true }); // Update the document
+                alert('Event updated successfully!');
+            } else {
+                // Adding a new event
+                const addedEvent = await addEvent(eventToSave);
+                if (addedEvent) {
+                    alert('Event added successfully!');
+                }
+            }
+
+            setAddEventModalVisible(false);
+            setNewEvent({
+                title: '',
+                type: 'Event',
+                description: '',
+                date: formatDateToDDMMYYYY(todayDate),
+                time: '',
+                id: null, // Reset the id for new events
+            });
+            fetchEvents(); // Refresh events after add/edit
+        } catch (error) {
+            console.error('Error saving event:', error);
+            alert('Failed to save event.');
+        }
+    };
+
+    const handleDeleteEvent = async (eventId) => {
+        Alert.alert(
+            'Delete Event',
+            'Are you sure you want to delete this event?',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await deleteEvent(eventId); // Replace with your Firestore delete logic
+                            alert('Event deleted successfully!');
+                            fetchEvents(); // Refresh the events after deletion
+                            closeEventDetails()
+                        } catch (error) {
+                            console.error('Error deleting event:', error);
+                            alert('Failed to delete event.');
+
+                        }
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
+    };
+
+
+    const handleEditEvent = (event) => {
+        setNewEvent({
+            ...event,
+            date: formatDateToDDMMYYYY(event.date), // Convert to DD-MM-YYYY for display
+            id: event.id, // Include the document ID to know this is an edit
+        });
+        setAddEventModalVisible(true); // Open the Add Event modal in edit mode
+        setDetailModalVisible(false); // Close the detail modal
+    };
+
 
     const getFilteredEvents = (date) => {
         const dateEvents = events[date] || [];
@@ -257,7 +316,10 @@ export const CalendarScreen = ({ allowEditing, navigation })  => {
             <Modal visible={addEventModalVisible} animationType="slide" transparent={true}>
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Add New Event</Text>
+                        {/* Update Modal Title */}
+                        <Text style={styles.modalTitle}>
+                            {isEditMode ? 'Edit Event' : 'Add New Event'}
+                        </Text>
                         <TextInput
                             style={styles.input}
                             placeholder="Title"
@@ -304,11 +366,28 @@ export const CalendarScreen = ({ allowEditing, navigation })  => {
                                 <Text style={styles.typeButtonText}>Homework</Text>
                             </TouchableOpacity>
                         </View>
+
+                        {/* Update Button Text */}
                         <TouchableOpacity onPress={handleAddEvent} style={styles.addButton}>
-                            <Text style={styles.addButtonText}>Add Event</Text>
+                            <Text style={styles.addButtonText}>
+                                {isEditMode ? 'Update Event' : 'Add Event'}
+                            </Text>
                         </TouchableOpacity>
+
+                        {/* Cancel Button */}
                         <TouchableOpacity
-                            onPress={() => setAddEventModalVisible(false)}
+                            onPress={() => {
+                                setAddEventModalVisible(false);
+                                // Reset newEvent state
+                                setNewEvent({
+                                    title: '',
+                                    type: 'Event',
+                                    description: '',
+                                    date: formatDateToDDMMYYYY(todayDate),
+                                    time: '',
+                                    id: null, // Reset id
+                                });
+                            }}
                             style={styles.closeButton}
                         >
                             <Text style={styles.closeButtonText}>Cancel</Text>
@@ -319,52 +398,71 @@ export const CalendarScreen = ({ allowEditing, navigation })  => {
 
             {/* Detail Modal */}
             <Modal visible={detailModalVisible} animationType="slide" transparent={true}>
-    <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-            {selectedEvent && (
-                <>
-                    <Text style={styles.modalTitle}>{selectedEvent.title}</Text>
-                    <Text
-                        style={[
-                            styles.modalType,
-                            {
-                                backgroundColor:
-                                    selectedEvent.type === 'Event'
-                                        ? '#92D4F2'
-                                        : '#A1D871',
-                            },
-                        ]}
-                    >
-                        {selectedEvent.type}
-                    </Text>
-                    <View style={styles.detailBox}>
-                        <Text style={styles.detailLabel}>Description:</Text>
-                        <Text style={styles.detailValue}>{selectedEvent.description || 'N/A'}</Text>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        {selectedEvent && (
+                            <>
+                                <Text style={styles.modalTitle}>{selectedEvent.title}</Text>
+                                <Text
+                                    style={[
+                                        styles.modalType,
+                                        {
+                                            backgroundColor:
+                                                selectedEvent.type === 'Event'
+                                                    ? '#92D4F2'
+                                                    : '#A1D871',
+                                        },
+                                    ]}
+                                >
+                                    {selectedEvent.type}
+                                </Text>
+                                <View style={styles.detailBox}>
+                                    <Text style={styles.detailLabel}>Description:</Text>
+                                    <Text style={styles.detailValue}>{selectedEvent.description || 'N/A'}</Text>
+                                </View>
+                                <View style={styles.detailBox}>
+                                    <Text style={styles.detailLabel}>Date:</Text>
+                                    <Text style={styles.detailValue}>
+                                        {formatDateToDDMMYYYY(selectedEvent.date || 'N/A')}
+                                    </Text>
+                                </View>
+                                <View style={styles.detailBox}>
+                                    <Text style={styles.detailLabel}>Time:</Text>
+                                    <Text style={styles.detailValue}>{selectedEvent.time || 'N/A'}</Text>
+                                </View>
+
+                                {/* Edit/Delete Buttons */}
+                                {selectedEvent.userId === user?.uid && (
+                                    <View style={styles.actionButtons}>
+                                        <TouchableOpacity
+                                            onPress={() => handleEditEvent(selectedEvent)}
+                                            style={styles.editButton}
+                                        >
+                                            <Text style={styles.buttonText}>Edit</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={() => handleDeleteEvent(selectedEvent.id)}
+                                            style={styles.deleteButton}
+                                        >
+                                            <Text style={styles.buttonText}>Delete</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setDetailModalVisible(false);
+                                        setSelectedEvent(null);
+                                    }}
+                                    style={styles.closeButton}
+                                >
+                                    <Text style={styles.closeButtonText}>Close</Text>
+                                </TouchableOpacity>
+                            </>
+                        )}
                     </View>
-                    <View style={styles.detailBox}>
-                        <Text style={styles.detailLabel}>Date:</Text>
-                        <Text style={styles.detailValue}>
-                            {formatDateToDDMMYYYY(selectedEvent.date || 'N/A')}
-                        </Text>
-                    </View>
-                    <View style={styles.detailBox}>
-                        <Text style={styles.detailLabel}>Time:</Text>
-                        <Text style={styles.detailValue}>{selectedEvent.time || 'N/A'}</Text>
-                    </View>
-                    <TouchableOpacity
-                        onPress={() => {
-                            setDetailModalVisible(false);
-                            setSelectedEvent(null);
-                        }}
-                        style={styles.closeButton}
-                    >
-                        <Text style={styles.closeButtonText}>Close</Text>
-                    </TouchableOpacity>
-                </>
-            )}
-        </View>
-    </View>
-</Modal>
+                </View>
+            </Modal>
 
             {/* Events List */}
             <View style={styles.eventsContainer}>
@@ -424,28 +522,28 @@ const styles = StyleSheet.create({
         fontSize: 14,
         paddingHorizontal: 10,
         paddingVertical: 5,
-        borderRadius: 5,
+        borderRadius: 10,
         textAlign: 'center',
         marginBottom: 20,
     },
     detailBox: {
         backgroundColor: '#f9f9f9',
         padding: 10,
-        borderRadius: 5,
+        borderRadius: 10,
         marginBottom: 15,
         borderWidth: 1,
         borderColor: '#ddd',
     },
     detailLabel: { fontSize: 14, fontWeight: 'bold', color: '#555', marginBottom: 5 },
     detailValue: { fontSize: 16, color: '#333' },
-    input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 5, padding: 10, marginBottom: 10, backgroundColor: '#f9f9f9' },
+    input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 10, padding: 10, marginBottom: 10, backgroundColor: '#f9f9f9' },
     descriptionInput: { height: 80, textAlignVertical: 'top' },
     modalButtons: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-    typeButton: { flex: 1, padding: 10, marginHorizontal: 5, borderRadius: 5, alignItems: 'center', borderWidth: 1, borderColor: '#ddd' },
+    typeButton: { flex: 1, padding: 10, marginHorizontal: 5, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#ddd' },
     typeButtonText: { fontWeight: 'bold' },
-    addButton: { backgroundColor: '#f4b22e', padding: 10, alignItems: 'center', borderRadius: 5 },
+    addButton: { backgroundColor: '#f4b22e', padding: 10, alignItems: 'center', borderRadius: 10, marginTop: 20 },
     addButtonText: { color: '#fff', fontWeight: 'bold' },
-    closeButton: { marginTop: 10, alignItems: 'center', backgroundColor: '#ddd', padding: 10, borderRadius: 5 },
+    closeButton: { alignItems: 'center', backgroundColor: '#ddd', padding: 10, borderRadius: 10 },
     closeButtonText: { color: '#333', fontWeight: 'bold' },
     filterContainer: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 },
     filterButton: { flex: 1, alignItems: 'center', padding: 10, marginHorizontal: 5, borderRadius: 10, elevation: 4 },
@@ -456,4 +554,39 @@ const styles = StyleSheet.create({
     eventTime: { fontSize: 16, color: '#555' },
     eventTitle: { fontSize: 16, fontWeight: 'bold', color: '#333' },
     noEventsText: { textAlign: 'center', marginTop: 20, fontSize: 16, color: '#999' },
+    actionButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginTop: 20,
+        gap: 10,
+    },
+    editButton: {
+        backgroundColor: '#92D4F2',
+        padding: 10,
+        borderRadius: 10,
+        flex: 1,
+        alignItems: 'center',
+    },
+    deleteButton: {
+        backgroundColor: '#f44336',
+        padding: 10,
+        borderRadius: 10,
+        flex: 1,
+        alignItems: 'center',
+    },
+    buttonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    closeButton: {
+        marginTop: 20,
+        alignItems: 'center',
+        backgroundColor: '#ddd',
+        padding: 10,
+        borderRadius: 10,
+    },
+    closeButtonText: {
+        color: '#333',
+        fontWeight: 'bold',
+    },
 });

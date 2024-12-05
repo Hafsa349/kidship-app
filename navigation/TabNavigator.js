@@ -10,7 +10,7 @@ import { allowedEditingRoles } from '../utils/constants';
 import { Icon } from '../components';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { AuthStack, AppStack, MoreAppStack } from '../navigation';
+import { AuthStack, AppStack, ProfileStack } from '../navigation';
 import { CalendarScreen, CreatePostScreen, HomeWorkScreen, ReportScreen } from '../screens';
 import { fetchUserDetails } from '../services';
 
@@ -52,6 +52,17 @@ export const TabNavigator = () => {
         fetchUserData();
     }, [user]);
 
+    const refreshUserDetail = async () => {
+        if (user?.uid) {
+            try {
+                const userDetails = await fetchUserDetails(user.uid); // Fetch updated details from Firestore
+                setUserDetail(userDetails); // Update state
+            } catch (error) {
+                console.error('Error refreshing user details:', error);
+            }
+        }
+    };
+
     // Decide which stack to show based on user authentication status
     const getTabScreen = () => {
         console.log(' userDetail object', userDetail)
@@ -83,55 +94,86 @@ export const TabNavigator = () => {
                             style={{ marginRight: 0 }} />
                     ),
                 }} />
-                <Tab.Screen name="Child Progress" component={user ? ReportScreen : AuthStack} options={{
-                    tabBarLabel: 'Child Progress',
-                    tabBarActiveTintColor: Colors.mediumGray,
-                    tabBarInactiveTintColor: Colors.mediumGray,
-                    tabBarIcon: ({ focused }) => (
-                        <Ionicons name={focused ? "book" : "book-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
-                            style={{ marginRight: 0 }} />
-                    ),
-                }} />
-   
+                <Tab.Screen
+                    name="Child Progress"
+                    children={({ navigation }) => (
+                        <ReportScreen
+                            navigation={navigation}
+                            allowEditing={allowEditing}
+                            user={user}
+                            userDetail={userDetail}
+                        />
+                    )}
+                    options={{
+                        // headerShown: false,
+                        tabBarLabel: 'Child Progress',
+                        tabBarActiveTintColor: Colors.mediumGray,
+                        tabBarInactiveTintColor: Colors.mediumGray,
+                        tabBarIcon: ({ focused }) => (
+                            <Ionicons
+                                name={focused ? "book" : "book-outline"}
+                                color={focused ? Colors.brandBlue : Colors.mediumGray}
+                                size={28}
+                                style={{ marginRight: 0 }}
+                            />
+                        ),
+                    }}
+                />
+
+
                 {allowEditing &&
-                    <Tab.Screen 
-                    name="Create Post" 
-                    component={user ? CreatePostScreen : AuthStack} 
-                    options={{
-                        tabBarLabel: 'Post',
-                        tabBarActiveTintColor: Colors.mediumGray,
-                        tabBarInactiveTintColor: Colors.mediumGray,
-                        tabBarIcon: ({ focused }) => (
-                            <Icon name={focused ? "plus-circle" : "plus-circle-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
-                                style={{ marginRight: 0 }} />
-                        ),
-                    }} />
+                    <Tab.Screen
+                        name="Create Post"
+                        component={user ? CreatePostScreen : AuthStack}
+                        options={{
+                            tabBarLabel: 'Post',
+                            tabBarActiveTintColor: Colors.mediumGray,
+                            tabBarInactiveTintColor: Colors.mediumGray,
+                            tabBarIcon: ({ focused }) => (
+                                <Icon name={focused ? "plus-circle" : "plus-circle-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
+                                    style={{ marginRight: 0 }} />
+                            ),
+                        }} />
                 }
-                <Tab.Screen 
-                name="Events" 
-                children={({ navigation }) => (
-                    <CalendarScreen navigation={navigation} allowEditing={allowEditing} />
-                )}
-                options={{
-                    tabBarLabel: 'Calendar',
-                    tabBarActiveTintColor: Colors.mediumGray,
-                    tabBarInactiveTintColor: Colors.mediumGray,
-                    tabBarIcon: ({ focused }) => (
-                        <Ionicons name={focused ? "calendar" : "calendar-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
-                            style={{ marginRight: 0 }} />
-                    ),
-                }} />
-                <Tab.Screen name="Profile"
-                    children={() => <MoreAppStack user={user} />}
+                <Tab.Screen
+                    name="Events"
+                    children={({ navigation }) => (
+                        <CalendarScreen navigation={navigation} allowEditing={allowEditing} />
+                    )}
                     options={{
-                        tabBarLabel: 'Profile',
+                        tabBarLabel: 'Calendar',
                         tabBarActiveTintColor: Colors.mediumGray,
                         tabBarInactiveTintColor: Colors.mediumGray,
                         tabBarIcon: ({ focused }) => (
-                            <Ionicons name={(focused ? 'person-circle' : 'person-circle-outline')} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
+                            <Ionicons name={focused ? "calendar" : "calendar-outline"} color={focused ? Colors.brandBlue : Colors.mediumGray} size={28}
                                 style={{ marginRight: 0 }} />
                         ),
                     }} />
+                <Tab.Screen
+                    name="Profile"
+                    children={(props) => (
+                        <ProfileStack
+                            {...props}
+                            user={user}
+                            userDetail={userDetail}
+                            refreshUserDetail={refreshUserDetail}
+                            allowEditing={allowEditing}
+
+                        />
+                    )}
+                    options={{
+                        headerShown: false,
+                        tabBarLabel: 'Profile',
+                        tabBarIcon: ({ focused }) => (
+                            <Ionicons
+                                name={focused ? 'person-circle' : 'person-circle-outline'}
+                                color={focused ? Colors.brandBlue : Colors.mediumGray}
+                                size={28}
+                            />
+                        ),
+                    }}
+                />
+
             </Tab.Navigator>
         );
     };

@@ -1,114 +1,146 @@
-import React from 'react';
-import { Text, SafeAreaView, StyleSheet, TouchableOpacity, View, FlatList } from 'react-native';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import React, { useState, useEffect } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    FlatList,
+    TouchableOpacity,
+    TextInput,
+} from 'react-native';
+import { Colors } from '../config';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../config';
+import AntDesign from '@expo/vector-icons/AntDesign';
+
+export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => {
+    const [children, setChildren] = useState([]);
+    const [searchText, setSearchText] = useState('');
+    const schoolId = userDetail?.schoolId;
 
 
-const reportsData = [
-    {
-        'id': 1,
-        'date': 'time',
-        'title': 'Social and Emocial Skills',
-        'desc': 'I like to have special jobs at my childminder’s. I like stories and will listen for a short period with',
-        'teacher': {
-            'id': 1,
-        },
-        'parent': {
-            'id': 2,
-        },
-        'child': {
-            'id': 3,
-            'name': 'Theo'
+    const fetchChildren = async () => {
+        if (!schoolId) return; // Ensure schoolId is provided
+
+        try {
+            const childrenRef = collection(db, `schools/${schoolId}/children`);
+            let q;
+
+            if (allowEditing) {
+                // Fetch all children in the school with teacherIds containing the current user
+                q = query(childrenRef, where('teacherIds', 'array-contains', user.uid));
+            } else {
+                // Fetch children with parentIds containing the current user
+                q = query(childrenRef, where('parentIds', 'array-contains', user.uid));
+            }
+
+            const querySnapshot = await getDocs(q);
+
+            const childrenList = querySnapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+
+            // Apply search filter
+            const filteredChildren = childrenList.filter((child) =>
+                `${child.firstName} ${child.lastName}`
+                    .toLowerCase()
+                    .includes(searchText.toLowerCase())
+            );
+
+            setChildren(filteredChildren);
+        } catch (error) {
+            console.error('Error fetching children:', error);
         }
+    };
 
-    },
-    {
-        'id': 2,
-        'date': 'time',
-        'title': 'Communication Skills',
-        'desc': 'I like stories and will listen for a short period with. I like to have special jobs at my childminder’s',
-        'teacher': {
-            'id': 1,
-        },
-        'parent': {
-            'id': 2,
-        },
-        'child': {
-            'id': 4,
-            'name': 'Cleo'
-        }
+    useEffect(() => {
+        fetchChildren();
+    }, [allowEditing, searchText]);
 
-    }
-]
-
-export const ReportScreen = ({ navigation }) => {
-    const renderItem = ({ item }) => (
-        <View style={styles.itemContainer}>
-            <MaterialCommunityIcons name="file-star" size={30} color="#f5b22d" style={styles.icon} />
-            <View style={styles.textContainer}>
-                <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
-                <Text style={styles.description} numberOfLines={1}>{item.desc}</Text>
+    const renderChildItem = ({ item }) => (
+        <TouchableOpacity
+            style={styles.childItem}
+            onPress={() =>
+                navigation.navigate('ChildReportsScreen', {
+                    allowEditing, // Pass allowEditing directly
+                    childId: item.id,
+                    childName: `${item.firstName} ${item.lastName}`,
+                    userDetail, // Pass the entire userDetail object
+                })
+            }
+        >
+            <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                    {item.firstName[0]}
+                    {item.lastName[0]}
+                </Text>
             </View>
-            <Text style={styles.timeText}>Time</Text>
-        </View>
+            <View>
+                <Text style={styles.childName}>
+                    {item.firstName} {item.lastName}
+                </Text>
+                <Text style={styles.childReports}>
+                    {item.reportCount || 0}{' '}
+                    {item.reportCount === 1 ? 'Report' : 'Reports'}
+                </Text>
+            </View>
+        </TouchableOpacity>
     );
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
-            <View style={styles.container}>
-                <FlatList
-                    data={reportsData}
-                    renderItem={renderItem}
-                    keyExtractor={(item) => item.id}
-                />
-            </View>
-        </SafeAreaView>
+        <View style={styles.container}>
+            <TextInput
+                style={styles.searchBar}
+                placeholder="Search for a child..."
+                value={searchText}
+                onChangeText={setSearchText}
+            />
+            <FlatList
+                data={children}
+                keyExtractor={(item) => item.id}
+                renderItem={renderChildItem}
+                ListEmptyComponent={
+                    <Text style={styles.emptyText}>
+                        No children found with reports.
+                    </Text>
+                }
+            />
+        </View>
     );
 };
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        paddingHorizontal: 16,
+    headerButton: { marginRight: 16 },
+    container: { flex: 1, backgroundColor: Colors.white, padding: 16 },
+    searchBar: {
+        backgroundColor: '#f9f9f9',
+        borderRadius: 10,
+        padding: 10,
+        marginBottom: 16,
+        borderWidth: 1, 
+        borderColor: '#ddd'
     },
-    header: {
+    childItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 16,
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-    },
-    headerIcon: {
-        width: 24,
-        height: 24,
-    },
-    itemContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 12,
+        padding: 10,
+        backgroundColor: Colors.white,
         borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
+        borderBottomColor: Colors.lightGrey,
     },
-    icon: {
-        width: 32,
-        height: 32,
-        marginRight: 12,
+    avatar: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: Colors.brandYellow,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
     },
-    textContainer: {
-        flex: 1,
-    },
-    title: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    description: {
-        fontSize: 14,
-        color: '#555',
-    },
-    timeText: {
-        fontSize: 14,
-        color: '#999',
-    },
+    avatarText: { fontSize: 20, fontWeight: 'bold', color: Colors.brandBlue },
+    childName: { fontSize: 16, fontWeight: 'bold', color: Colors.black },
+    childReports: { fontSize: 14, color: Colors.darkGrey },
+    emptyText: { textAlign: 'center', color: Colors.darkGrey, marginTop: 20 },
 });
+
+export default ReportScreen;
