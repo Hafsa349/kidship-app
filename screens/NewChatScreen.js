@@ -2,35 +2,62 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Image, TouchableOpacity, StyleSheet, View, Text, FlatList, TextInput, Alert } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db, auth } from '../config/firebase';
-import { fetchUsersBySchool } from '../services'
+import { fetchUsersBySchool, fetchUserDetails } from '../services'
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '../config';
+import { Colors, ADMIN_ROLES, PARENT_ROLES } from '../config';
 import { SchoolContext } from '../providers';
 
 export const NewChatScreen = ({ navigation }) => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-    const { schoolDetail } = useContext(SchoolContext);
-    const currentUser = auth.currentUser;
+  const { schoolDetail } = useContext(SchoolContext);
+  const [userDetail, setUserDetail] = useState({});
 
-    // Add header button to navigate to New Chat Screen
-    useEffect(() => {
-      navigation.setOptions({
-          headerLeft: () => (
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeftButton}>
-                  <Ionicons name="arrow-back" size={24} color={Colors.brandBlue} />
-              </TouchableOpacity>
-          ),
-      });
+  const currentUser = auth.currentUser;
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      console.log('User object:', user); // Debugging
+      if (currentUser && currentUser.uid) {
+        try {
+          const userDetails = await fetchUserDetails(currentUser.uid);
+          setUserDetail(userDetails);
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [currentUser]);
+
+  // Add header button to navigate to New Chat Screen
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity style={styles.headerRightButton} onPress={() => navigation.navigate('NewChatScreen')}>
+          <AntDesign name="pluscircle" size={32} color="#f5b22d" />
+        </TouchableOpacity>
+      ),
+      headerLeft: () => (
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeftButton}>
+          <Ionicons name="arrow-back" size={24} color={Colors.brandBlue} />
+        </TouchableOpacity>
+      ),
+    });
   }, [navigation]);
 
   const fetchUsers = async () => {
     try {
       console.log('schoolDetail', schoolDetail)
-      const allUsers = await fetchUsersBySchool(schoolDetail)
-     
+      var roles = PARENT_ROLES
+      if(userDetail?.userRoles?.includes(ADMIN_ROLES)){
+        roles = ADMIN_ROLES;
+      }
+      const allUsers = await fetchUsersBySchool(schoolDetail, roles)
+
       const sortedUsers = allUsers?.filter(user => user.id !== currentUser?.uid)?.sort((a, b) => {
         if (a.firstName.toLowerCase() === b.firstName.toLowerCase()) {
           return a.lastName.toLowerCase().localeCompare(b.lastName.toLowerCase());
@@ -119,10 +146,10 @@ export const NewChatScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   headerRightButton: {
     marginRight: 16,
-},
-headerLeftButton: {
+  },
+  headerLeftButton: {
     marginLeft: 16,
-},
+  },
   screenContainer: {
     flex: 1,
     backgroundColor: '#fff',

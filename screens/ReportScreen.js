@@ -11,14 +11,24 @@ import { Colors } from '../config';
 import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { db } from '../config';
 import AntDesign from '@expo/vector-icons/AntDesign';
+<<<<<<< HEAD
 import { useFocusEffect } from '@react-navigation/native';
  
+=======
+
+>>>>>>> 7b48e0f589f9f3a575019679b666a02b1f8afcec
 export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => {
     const [children, setChildren] = useState([]);
     const [searchText, setSearchText] = useState('');
     const schoolId = userDetail?.schoolId;
 
+<<<<<<< HEAD
     console.log('USER: ', user)
+=======
+
+    const fetchChildren = async () => {
+        if (!schoolId) return; // Ensure schoolId is provided
+>>>>>>> 7b48e0f589f9f3a575019679b666a02b1f8afcec
 
     const fetchChildren = () => {
         if (!schoolId) return; // Ensure schoolId is provided
@@ -58,6 +68,7 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
     };
 
     useEffect(() => {
+<<<<<<< HEAD
         const unsubscribe = fetchChildren();
         return () => {
             if (unsubscribe) unsubscribe(); // Cleanup the listener
@@ -72,6 +83,10 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
             };
         }, [schoolId, allowEditing, searchText])
     );
+=======
+        fetchChildren();
+    }, [allowEditing, searchText]);
+>>>>>>> 7b48e0f589f9f3a575019679b666a02b1f8afcec
 
     const renderChildItem = ({ item }) => (
         <TouchableOpacity
@@ -102,6 +117,7 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
             </View>
         </TouchableOpacity>
     );
+<<<<<<< HEAD
     const renderEmptyMessage = () => (
         (allowEditing ? (
             <><Text style={styles.emptyText}>
@@ -151,6 +167,8 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
         ))
 
     )
+=======
+>>>>>>> 7b48e0f589f9f3a575019679b666a02b1f8afcec
 
     return (
         <View style={styles.container}>
@@ -164,7 +182,11 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
                 data={children}
                 keyExtractor={(item) => item.id}
                 renderItem={renderChildItem}
-                ListEmptyComponent={renderEmptyMessage}
+                ListEmptyComponent={
+                    <Text style={styles.emptyText}>
+                        No children found with reports.
+                    </Text>
+                }
             />
         </View>
     );
@@ -178,7 +200,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 10,
         marginBottom: 16,
-        borderWidth: 1,
+        borderWidth: 1, 
         borderColor: '#ddd'
     },
     childItem: {
@@ -202,12 +224,6 @@ const styles = StyleSheet.create({
     childName: { fontSize: 16, fontWeight: 'bold', color: Colors.black },
     childReports: { fontSize: 14, color: Colors.darkGrey },
     emptyText: { textAlign: 'center', color: Colors.darkGrey, marginTop: 20 },
-    navigationText: { textAlign: 'center', fontSize: 16, color: Colors.darkGrey, marginTop: 20 },
-    highlightedText: {
-        fontWeight: 'bold',
-        color: Colors.brandYellow
-    },
-
 });
 
 export default ReportScreen;

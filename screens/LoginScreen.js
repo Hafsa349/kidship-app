@@ -116,7 +116,7 @@ export const LoginScreen = ({ route, navigation }) => {
           <Button
             style={styles.borderlessButtonContainer}
             borderless
-            title={'Do not have account?'}
+            title={'Do not have an account?'}
             onPress={() => navigation.navigate('SignupScreen')}
             disabled={loading} // Disable during loading
           />

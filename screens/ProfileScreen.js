@@ -105,15 +105,7 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
 
                 <TouchableOpacity
                     style={styles.optionItem}
-                    onPress={() => navigateToScreen('ChangePasswordScreen', { 
-                        userDetail: {
-                            firstName: userDetail.firstName,
-                            lastName: userDetail.lastName,
-                            phoneNumber: userDetail.phoneNumber,
-                            dateOfBirth: userDetail.dateOfBirth,
-                            uid: userDetail.uid
-                        } }
-                    )}
+                    onPress={() => navigateToScreen('ChangePasswordScreen')}
                 >
                     <View style={styles.optionIcon}>
                         <Ionicons name="key-outline" size={24} color={Colors.brandYellow} />
@@ -131,6 +123,7 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
                 {allowEditing ? (
                     <TouchableOpacity
                         style={styles.optionItem}
+<<<<<<< HEAD
                         onPress={() => navigateToScreen('StudentsScreen', { 
                             userDetail: {
                                 firstName: userDetail?.firstName,
@@ -141,6 +134,9 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
                                 schoolId: userDetail?.schoolId
                             } 
                         })}
+=======
+                        onPress={() => navigateToScreen('StudentsScreen')}
+>>>>>>> 7b48e0f589f9f3a575019679b666a02b1f8afcec
                     >
                         <View style={styles.optionIcon}>
                             <Ionicons
@@ -152,7 +148,7 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
                         <View>
                             <Text style={styles.optionTitle}>View Students</Text>
                             <Text style={styles.optionSubtitle}>
-                                Add and edit your students
+                                Check your students' profiles
                             </Text>
                         </View>
                         <View style={styles.optionForward}>
@@ -168,12 +164,22 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
                         style={styles.optionItem}
                         onPress={() => navigation.navigate('ChildrenScreen', { 
                             userDetail: {
+<<<<<<< HEAD
                                 firstName: userDetail?.firstName,
                                 lastName: userDetail?.lastName,
                                 phoneNumber: userDetail?.phoneNumber,
                                 dateOfBirth: userDetail?.dateOfBirth,
                                 uid: userDetail?.uid,
                                 schoolId: userDetail?.schoolId
+=======
+                                firstName: userDetail.firstName,
+                                lastName: userDetail.lastName,
+                                phoneNumber: userDetail.phoneNumber,
+                                dateOfBirth: userDetail.dateOfBirth,
+                                uid: userDetail.uid,
+                                schoolId: userDetail.schoolId
+
+>>>>>>> 7b48e0f589f9f3a575019679b666a02b1f8afcec
                             } 
                         }
                     )}
@@ -188,7 +194,7 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
                         <View>
                             <Text style={styles.optionTitle}>View Children</Text>
                             <Text style={styles.optionSubtitle}>
-                                Add and edit your children
+                                Check your children's profiles
                             </Text>
                         </View>
                         <View style={styles.optionForward}>
