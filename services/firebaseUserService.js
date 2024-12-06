@@ -280,7 +280,7 @@ export const getComments = async (postId) => {
     }
 };
 
-export const fetchUsersBySchool = async (schoolId) => {
+export const fetchUsersBySchool = async (schoolId, userRoles) => {
     try {
         // Ensure schoolId is provided
         if (!schoolId) {
@@ -291,7 +291,8 @@ export const fetchUsersBySchool = async (schoolId) => {
         const col = collection(db, 'users');
         const q = query(
             col,
-            where('schoolId', '==', schoolId) // Add filter for schoolId
+            where('schoolId', '==', schoolId), // Add filter for schoolId
+            where('userRoles', 'array-contains', userRoles)
         );
 
         // Fetch the documents
