@@ -12,15 +12,17 @@ import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestor
 import { db } from '../config';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useFocusEffect } from '@react-navigation/native';
- 
+
 export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => {
     const [children, setChildren] = useState([]);
     const [searchText, setSearchText] = useState('');
     const schoolId = userDetail?.schoolId;
+    const [refreshing, setRefreshing] = useState(false); // Track refreshing state
+
 
 
     const fetchChildren = () => {
-        if (!schoolId) return; // Ensure schoolId is provided
+        if (!schoolId) return;
     
         try {
             const childrenRef = collection(db, `schools/${schoolId}/children`);
@@ -33,11 +35,20 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
             }
     
             // Listen for real-time updates
-            const unsubscribe = onSnapshot(q, (querySnapshot) => {
-                const childrenList = querySnapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }));
+            const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+                const childrenList = await Promise.all(
+                    querySnapshot.docs.map(async (doc) => {
+                        const childData = doc.data();
+                        const reportsRef = collection(db, `schools/${schoolId}/children/${doc.id}/reports`);
+                        const reportsSnapshot = await getDocs(reportsRef);
+    
+                        return {
+                            id: doc.id,
+                            ...childData,
+                            reportCount: reportsSnapshot.size, // Dynamically calculate report count
+                        };
+                    })
+                );
     
                 // Apply search filter
                 const filteredChildren = childrenList.filter((child) =>
@@ -49,12 +60,12 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
                 setChildren(filteredChildren);
             });
     
-            // Return unsubscribe function to clean up listener
             return unsubscribe;
         } catch (error) {
             console.error('Error fetching children:', error);
         }
     };
+    
 
     useEffect(() => {
         const unsubscribe = fetchChildren();
@@ -62,7 +73,7 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
             if (unsubscribe) unsubscribe(); // Cleanup the listener
         };
     }, [schoolId, allowEditing, searchText]); // Re-run when dependencies change
-    
+
     useFocusEffect(
         React.useCallback(() => {
             const unsubscribe = fetchChildren();
@@ -72,6 +83,11 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
         }, [schoolId, allowEditing, searchText])
     );
 
+    const onRefresh = async () => {
+        setRefreshing(true); // Start refreshing
+        await fetchChildren(); // Re-fetch data
+        setRefreshing(false); // Stop refreshing
+    };
     const renderChildItem = ({ item }) => (
         <TouchableOpacity
             style={styles.childItem}
@@ -164,7 +180,9 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
                 keyExtractor={(item) => item.id}
                 renderItem={renderChildItem}
                 ListEmptyComponent={renderEmptyMessage}
-                
+                refreshing={refreshing} // Pull-to-refresh state
+                onRefresh={onRefresh} // Function to call on refresh
+
             />
         </View>
     );
@@ -178,7 +196,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 10,
         marginBottom: 16,
-        borderWidth: 1, 
+        borderWidth: 1,
         borderColor: '#ddd'
     },
     childItem: {
