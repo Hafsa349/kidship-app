@@ -43,7 +43,7 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
                 phoneNumber: userDetail?.phoneNumber,
                 dateOfBirth: userDetail?.dateOfBirth,
                 uid: userDetail?.uid,
-                schoolId: userDetail?.schoolId,
+                schoolId: userDetail?.schoolId
             },
         });
     };
