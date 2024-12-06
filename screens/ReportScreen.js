@@ -11,12 +11,12 @@ import { Colors } from '../config';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../config';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { useFocusEffect } from '@react-navigation/native';
 
 export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => {
     const [children, setChildren] = useState([]);
     const [searchText, setSearchText] = useState('');
     const schoolId = userDetail?.schoolId;
-
 
     const fetchChildren = async () => {
         if (!schoolId) return; // Ensure schoolId is provided
@@ -54,8 +54,15 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
     };
 
     useEffect(() => {
-        fetchChildren();
+        fetchChildren(); // Fetch children initially
     }, [allowEditing, searchText]);
+
+    // Refresh data whenever the screen comes into focus
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchChildren();
+        }, []) // Only run when the screen is focused
+    );
 
     const renderChildItem = ({ item }) => (
         <TouchableOpacity
@@ -86,6 +93,58 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
             </View>
         </TouchableOpacity>
     );
+    const renderEmptyMessage = () => (
+        (allowEditing ? (
+            <><Text style={styles.emptyText}>
+                No students found. Add a student to get started:
+            </Text>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('ProfileScreen', {
+                        userDetail: {
+                            firstName: userDetail.firstName,
+                            lastName: userDetail.lastName,
+                            phoneNumber: userDetail.phoneNumber,
+                            dateOfBirth: userDetail.dateOfBirth,
+                            uid: userDetail.uid,
+                            schoolId: userDetail.schoolId
+                        }
+                    }
+                    )}
+                >
+                    <Text style={styles.navigationText}>
+                        Go to <Text style={styles.highlightedText}>Profile</Text> {'>'} <Text style={styles.highlightedText}>View Student</Text>
+                    </Text>
+
+                </TouchableOpacity>
+            </>
+        ) : (
+            <><Text style={styles.emptyText}>
+                No children found. Add a child to get started:
+            </Text>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('ProfileScreen', {
+                        userDetail: {
+                            firstName: userDetail.firstName,
+                            lastName: userDetail.lastName,
+                            phoneNumber: userDetail.phoneNumber,
+                            dateOfBirth: userDetail.dateOfBirth,
+                            uid: userDetail.uid,
+                            schoolId: userDetail.schoolId
+                        }
+                    }
+                    )}
+                >
+                    <Text style={styles.navigationText}>
+                        Go to <Text style={styles.highlightedText}>Profile</Text> {'>'} <Text style={styles.highlightedText}>View Children</Text>
+                    </Text>
+
+                </TouchableOpacity></>
+        ))
+
+
+
+
+    )
 
     return (
         <View style={styles.container}>
@@ -99,11 +158,7 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
                 data={children}
                 keyExtractor={(item) => item.id}
                 renderItem={renderChildItem}
-                ListEmptyComponent={
-                    <Text style={styles.emptyText}>
-                        No children found with reports.
-                    </Text>
-                }
+                ListEmptyComponent={renderEmptyMessage}
             />
         </View>
     );
@@ -117,7 +172,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 10,
         marginBottom: 16,
-        borderWidth: 1, 
+        borderWidth: 1,
         borderColor: '#ddd'
     },
     childItem: {
@@ -141,6 +196,12 @@ const styles = StyleSheet.create({
     childName: { fontSize: 16, fontWeight: 'bold', color: Colors.black },
     childReports: { fontSize: 14, color: Colors.darkGrey },
     emptyText: { textAlign: 'center', color: Colors.darkGrey, marginTop: 20 },
+    navigationText: { textAlign: 'center', fontSize: 16, color: Colors.darkGrey, marginTop: 20 },
+    highlightedText: {
+        fontWeight: 'bold',
+        color: Colors.brandYellow
+    },
+
 });
 
 export default ReportScreen;

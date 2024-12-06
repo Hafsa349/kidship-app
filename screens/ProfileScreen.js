@@ -94,7 +94,15 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
 
                 <TouchableOpacity
                     style={styles.optionItem}
-                    onPress={() => navigateToScreen('ChangePasswordScreen')}
+                    onPress={() => navigateToScreen('ChangePasswordScreen', { 
+                        userDetail: {
+                            firstName: userDetail.firstName,
+                            lastName: userDetail.lastName,
+                            phoneNumber: userDetail.phoneNumber,
+                            dateOfBirth: userDetail.dateOfBirth,
+                            uid: userDetail.uid
+                        } }
+                    )}
                 >
                     <View style={styles.optionIcon}>
                         <Ionicons name="key-outline" size={24} color={Colors.brandYellow} />
@@ -112,7 +120,16 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
                 {allowEditing ? (
                     <TouchableOpacity
                         style={styles.optionItem}
-                        onPress={() => navigateToScreen('StudentsScreen')}
+                        onPress={() => navigateToScreen('StudentsScreen', { 
+                            userDetail: {
+                                firstName: userDetail.firstName,
+                                lastName: userDetail.lastName,
+                                phoneNumber: userDetail.phoneNumber,
+                                dateOfBirth: userDetail.dateOfBirth,
+                                uid: userDetail.uid,
+                                schoolId: userDetail.schoolId
+                            } 
+                        })}
                     >
                         <View style={styles.optionIcon}>
                             <Ionicons
@@ -124,7 +141,7 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
                         <View>
                             <Text style={styles.optionTitle}>View Students</Text>
                             <Text style={styles.optionSubtitle}>
-                                Check your students' profiles
+                                Add and edit your students
                             </Text>
                         </View>
                         <View style={styles.optionForward}>
@@ -146,7 +163,6 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
                                 dateOfBirth: userDetail.dateOfBirth,
                                 uid: userDetail.uid,
                                 schoolId: userDetail.schoolId
-
                             } 
                         }
                     )}
@@ -161,7 +177,7 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
                         <View>
                             <Text style={styles.optionTitle}>View Children</Text>
                             <Text style={styles.optionSubtitle}>
-                                Check your children's profiles
+                                Add and edit your children
                             </Text>
                         </View>
                         <View style={styles.optionForward}>

@@ -18,11 +18,6 @@ export const NewChatScreen = ({ navigation }) => {
     // Add header button to navigate to New Chat Screen
     useEffect(() => {
       navigation.setOptions({
-          headerRight: () => (
-              <TouchableOpacity style={styles.headerRightButton} onPress={() => navigation.navigate('NewChatScreen')}>
-                  <AntDesign name="pluscircle" size={32} color="#f5b22d" />
-              </TouchableOpacity>
-          ),
           headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeftButton}>
                   <Ionicons name="arrow-back" size={24} color={Colors.brandBlue} />
