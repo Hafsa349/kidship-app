@@ -178,7 +178,7 @@ export const StudentsScreen = ({ user, userDetail, navigation }) => {
                     </TouchableOpacity>
                 )}
                 ListEmptyComponent={
-                    <Text style={styles.noStudentsText}>No students found. Add a student to get started.</Text>
+                    <Text style={styles.noStudentsText}>No students yet. Add a student to get started.</Text>
                 }
             />
 

@@ -8,60 +8,69 @@ import {
     TextInput,
 } from 'react-native';
 import { Colors } from '../config';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { db } from '../config';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useFocusEffect } from '@react-navigation/native';
-
+ 
 export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => {
     const [children, setChildren] = useState([]);
     const [searchText, setSearchText] = useState('');
     const schoolId = userDetail?.schoolId;
 
-    const fetchChildren = async () => {
-        if (!schoolId) return; // Ensure schoolId is provided
+    console.log('USER: ', user)
 
+    const fetchChildren = () => {
+        if (!schoolId) return; // Ensure schoolId is provided
+    
         try {
             const childrenRef = collection(db, `schools/${schoolId}/children`);
             let q;
-
+    
             if (allowEditing) {
-                // Fetch all children in the school with teacherIds containing the current user
                 q = query(childrenRef, where('teacherIds', 'array-contains', user.uid));
             } else {
-                // Fetch children with parentIds containing the current user
                 q = query(childrenRef, where('parentIds', 'array-contains', user.uid));
             }
-
-            const querySnapshot = await getDocs(q);
-
-            const childrenList = querySnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-
-            // Apply search filter
-            const filteredChildren = childrenList.filter((child) =>
-                `${child.firstName} ${child.lastName}`
-                    .toLowerCase()
-                    .includes(searchText.toLowerCase())
-            );
-
-            setChildren(filteredChildren);
+    
+            // Listen for real-time updates
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                const childrenList = querySnapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
+    
+                // Apply search filter
+                const filteredChildren = childrenList.filter((child) =>
+                    `${child.firstName} ${child.lastName}`
+                        .toLowerCase()
+                        .includes(searchText.toLowerCase())
+                );
+    
+                setChildren(filteredChildren);
+            });
+    
+            // Return unsubscribe function to clean up listener
+            return unsubscribe;
         } catch (error) {
             console.error('Error fetching children:', error);
         }
     };
 
     useEffect(() => {
-        fetchChildren(); // Fetch children initially
-    }, [allowEditing, searchText]);
-
-    // Refresh data whenever the screen comes into focus
+        const unsubscribe = fetchChildren();
+        return () => {
+            if (unsubscribe) unsubscribe(); // Cleanup the listener
+        };
+    }, [schoolId, allowEditing, searchText]); // Re-run when dependencies change
+    
     useFocusEffect(
         React.useCallback(() => {
-            fetchChildren();
-        }, []) // Only run when the screen is focused
+            const unsubscribe = fetchChildren();
+            return () => {
+                if (unsubscribe) unsubscribe(); // Cleanup the listener on screen unfocus
+            };
+        }, [schoolId, allowEditing, searchText])
     );
 
     const renderChildItem = ({ item }) => (
@@ -140,9 +149,6 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
 
                 </TouchableOpacity></>
         ))
-
-
-
 
     )
 

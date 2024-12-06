@@ -179,7 +179,7 @@ export const ChildrenScreen = ({ user, userDetail, navigation }) => {
                     </TouchableOpacity>
                 )}
                 ListEmptyComponent={
-                    <Text style={styles.noChildrenText}>No children found. Add a child to get started.</Text>
+                    <Text style={styles.noChildrenText}>No children yet. Add a child to get started.</Text>
                 }
             />
 

@@ -83,22 +83,22 @@ export const ChildReportsScreen = ({ route, navigation }) => {
                 db,
                 `schools/${userDetail.schoolId}/children/${childId}/reports`
             );
-    
+
             const q = query(reportsRef);
             const querySnapshot = await getDocs(q);
-    
+
             const reportsList = querySnapshot.docs.map((doc) => ({
                 id: doc.id,
                 ...doc.data(),
                 date: formatDateToDDMMYYYY(doc.data().date), // Format the Firestore Timestamp
             }));
-    
+
             setReports(reportsList);
         } catch (error) {
             console.error('Error fetching reports:', error);
         }
     };
-    
+
 
     useEffect(() => {
         fetchReports();
@@ -106,19 +106,19 @@ export const ChildReportsScreen = ({ route, navigation }) => {
 
     const handleAddReport = async () => {
         const { title, description, date } = reportForm;
-    
+
         if (!title || !description || !date) {
             Alert.alert('Error', 'Please fill all fields.');
             return;
         }
-    
+
         try {
             // Path: schools/{schoolId}/children/{childId}/reports
             const reportsRef = collection(
                 db,
                 `schools/${userDetail.schoolId}/children/${childId}/reports`
             );
-    
+
             const newReport = {
                 title,
                 description,
@@ -128,10 +128,10 @@ export const ChildReportsScreen = ({ route, navigation }) => {
                 userId: userDetail.uid,
                 createdAt: serverTimestamp(),
             };
-    
+
             // Add the new report to the correct sub-collection
             await addDoc(reportsRef, newReport);
-    
+
             Alert.alert('Success', 'Report added successfully.');
             setReportForm({ title: '', description: '', date: '' });
             setModalVisible(false);
@@ -141,7 +141,7 @@ export const ChildReportsScreen = ({ route, navigation }) => {
             Alert.alert('Error', 'Failed to add report.');
         }
     };
-    
+
 
     const openReportDetails = (report) => {
         setSelectedReport(report);
@@ -152,6 +152,21 @@ export const ChildReportsScreen = ({ route, navigation }) => {
         setSelectedReport(null);
         setDetailModalVisible(false);
     };
+
+    const renderEmptyMessage = () => (
+        (allowEditing ? (
+            <><Text style={styles.emptyText}>
+                No reports yet. Add a report to get start.
+            </Text>
+            </>
+        ) : (
+            <><Text style={styles.emptyText}>
+                No reports yet.
+            </Text>
+            </>
+        ))
+
+    )
 
     const renderReportItem = ({ item }) => (
         <TouchableOpacity

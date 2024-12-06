@@ -34,17 +34,28 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
         ]);
     };
 
-    const navigateToScreen = (screen) => {
-        navigation.navigate(screen, {user, userDetail});
+    const navigateToScreen = (screen, params = {}) => {
+        navigation.navigate(screen, {
+            ...params,
+            userDetail: {
+                firstName: userDetail?.firstName,
+                lastName: userDetail?.lastName,
+                phoneNumber: userDetail?.phoneNumber,
+                dateOfBirth: userDetail?.dateOfBirth,
+                uid: userDetail?.uid,
+                schoolId: userDetail?.schoolId,
+            },
+        });
     };
+    
     const navigateToEditProfile = () => {
         navigation.navigate('EditProfileScreen', { 
             userDetail: {
-                firstName: userDetail.firstName,
-                lastName: userDetail.lastName,
-                phoneNumber: userDetail.phoneNumber,
-                dateOfBirth: userDetail.dateOfBirth,
-                uid: userDetail.uid
+                firstName: userDetail?.firstName,
+                lastName: userDetail?.lastName,
+                phoneNumber: userDetail?.phoneNumber,
+                dateOfBirth: userDetail?.dateOfBirth,
+                uid: userDetail?.uid
             } 
         });
     };
@@ -122,12 +133,12 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
                         style={styles.optionItem}
                         onPress={() => navigateToScreen('StudentsScreen', { 
                             userDetail: {
-                                firstName: userDetail.firstName,
-                                lastName: userDetail.lastName,
-                                phoneNumber: userDetail.phoneNumber,
-                                dateOfBirth: userDetail.dateOfBirth,
-                                uid: userDetail.uid,
-                                schoolId: userDetail.schoolId
+                                firstName: userDetail?.firstName,
+                                lastName: userDetail?.lastName,
+                                phoneNumber: userDetail?.phoneNumber,
+                                dateOfBirth: userDetail?.dateOfBirth,
+                                uid: userDetail?.uid,
+                                schoolId: userDetail?.schoolId
                             } 
                         })}
                     >
@@ -157,12 +168,12 @@ export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail,
                         style={styles.optionItem}
                         onPress={() => navigation.navigate('ChildrenScreen', { 
                             userDetail: {
-                                firstName: userDetail.firstName,
-                                lastName: userDetail.lastName,
-                                phoneNumber: userDetail.phoneNumber,
-                                dateOfBirth: userDetail.dateOfBirth,
-                                uid: userDetail.uid,
-                                schoolId: userDetail.schoolId
+                                firstName: userDetail?.firstName,
+                                lastName: userDetail?.lastName,
+                                phoneNumber: userDetail?.phoneNumber,
+                                dateOfBirth: userDetail?.dateOfBirth,
+                                uid: userDetail?.uid,
+                                schoolId: userDetail?.schoolId
                             } 
                         }
                     )}

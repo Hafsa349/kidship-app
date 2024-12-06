@@ -10,7 +10,7 @@ import { allowedEditingRoles } from '../utils/constants';
 import { Icon } from '../components';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { AuthStack, AppStack, ProfileStack } from '../navigation';
+import { AuthStack, AppStack, ProfileStack } from '.';
 import { CalendarScreen, CreatePostScreen, HomeWorkScreen, ReportScreen } from '../screens';
 import { fetchUserDetails } from '../services';
 
@@ -105,7 +105,8 @@ export const TabNavigator = () => {
                         />
                     )}
                     options={{
-                        // headerShown: false,
+                        headerShown: true,
+
                         tabBarLabel: 'Child Progress',
                         tabBarActiveTintColor: Colors.mediumGray,
                         tabBarInactiveTintColor: Colors.mediumGray,
