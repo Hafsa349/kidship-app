@@ -184,11 +184,7 @@ export const ChildReportsScreen = ({ route, navigation }) => {
                 data={reports}
                 keyExtractor={(item) => item.id}
                 renderItem={renderReportItem}
-                ListEmptyComponent={
-                    <Text style={styles.emptyText}>
-                        No reports found. Add a report to get started.
-                    </Text>
-                }
+                ListEmptyComponent={renderEmptyMessage}
             />
 
             {/* Add Report Modal */}
