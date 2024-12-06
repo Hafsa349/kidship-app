@@ -11,24 +11,13 @@ import { Colors } from '../config';
 import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { db } from '../config';
 import AntDesign from '@expo/vector-icons/AntDesign';
-<<<<<<< HEAD
 import { useFocusEffect } from '@react-navigation/native';
  
-=======
-
->>>>>>> 7b48e0f589f9f3a575019679b666a02b1f8afcec
 export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => {
     const [children, setChildren] = useState([]);
     const [searchText, setSearchText] = useState('');
     const schoolId = userDetail?.schoolId;
 
-<<<<<<< HEAD
-    console.log('USER: ', user)
-=======
-
-    const fetchChildren = async () => {
-        if (!schoolId) return; // Ensure schoolId is provided
->>>>>>> 7b48e0f589f9f3a575019679b666a02b1f8afcec
 
     const fetchChildren = () => {
         if (!schoolId) return; // Ensure schoolId is provided
@@ -68,7 +57,6 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
     };
 
     useEffect(() => {
-<<<<<<< HEAD
         const unsubscribe = fetchChildren();
         return () => {
             if (unsubscribe) unsubscribe(); // Cleanup the listener
@@ -83,10 +71,6 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
             };
         }, [schoolId, allowEditing, searchText])
     );
-=======
-        fetchChildren();
-    }, [allowEditing, searchText]);
->>>>>>> 7b48e0f589f9f3a575019679b666a02b1f8afcec
 
     const renderChildItem = ({ item }) => (
         <TouchableOpacity
@@ -117,7 +101,6 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
             </View>
         </TouchableOpacity>
     );
-<<<<<<< HEAD
     const renderEmptyMessage = () => (
         (allowEditing ? (
             <><Text style={styles.emptyText}>
@@ -167,8 +150,6 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
         ))
 
     )
-=======
->>>>>>> 7b48e0f589f9f3a575019679b666a02b1f8afcec
 
     return (
         <View style={styles.container}>
