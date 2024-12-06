@@ -104,7 +104,7 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
     const renderEmptyMessage = () => (
         (allowEditing ? (
             <><Text style={styles.emptyText}>
-                No students found. Add a student to get started:
+                No students yet. Add a student to get started:
             </Text>
                 <TouchableOpacity
                     onPress={() => navigation.navigate('ProfileScreen', {
@@ -127,7 +127,7 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
             </>
         ) : (
             <><Text style={styles.emptyText}>
-                No children found. Add a child to get started:
+                No children yet. Add a child to get started:
             </Text>
                 <TouchableOpacity
                     onPress={() => navigation.navigate('ProfileScreen', {
@@ -163,11 +163,8 @@ export const ReportScreen = ({ user, userDetail, allowEditing, navigation }) => 
                 data={children}
                 keyExtractor={(item) => item.id}
                 renderItem={renderChildItem}
-                ListEmptyComponent={
-                    <Text style={styles.emptyText}>
-                        No children found with reports.
-                    </Text>
-                }
+                ListEmptyComponent={renderEmptyMessage}
+                
             />
         </View>
     );
@@ -205,6 +202,16 @@ const styles = StyleSheet.create({
     childName: { fontSize: 16, fontWeight: 'bold', color: Colors.black },
     childReports: { fontSize: 14, color: Colors.darkGrey },
     emptyText: { textAlign: 'center', color: Colors.darkGrey, marginTop: 20 },
+    navigationText: {
+        fontSize: 16,
+        color: Colors.darkGrey,
+        textAlign: 'center',
+        marginTop: 20
+    },
+    highlightedText: {
+        fontWeight: 'bold',
+        color: Colors.brandYellow
+    },
 });
 
 export default ReportScreen;
