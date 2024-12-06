@@ -10,9 +10,6 @@ import { useFocusEffect } from '@react-navigation/native';
 export const ProfileScreen = ({ navigation, user, userDetail, refreshUserDetail, allowEditing }) => {
     // console.log('User in ProfileScreen:', user);
     // console.log('User Details in ProfileScreen:', userDetail);
-    console.log('allowEditing', allowEditing)
-    console.log('SCHOOL PROFILE: ', userDetail.schoolId)
-
 
     const handleSignOut = async () => {
         Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
