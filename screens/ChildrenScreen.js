@@ -127,8 +127,8 @@ export const ChildrenScreen = ({ user, userDetail, navigation }) => {
             resetForm();
             fetchChildren(); // Refresh the children list
         } catch (error) {
-            console.error('Error saving child:', error);
-            Alert.alert('Error', 'Failed to save child.');
+            // console.error('Error saving child:', error);
+            Alert.alert('Error', error);
         }
     };
     

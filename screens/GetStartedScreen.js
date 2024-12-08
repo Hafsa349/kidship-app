@@ -50,12 +50,10 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 28,
     color: Colors.white,
-    fontFamily: 'psemibold',
     textAlign: 'center',
   },
   logoText: {
     color: Colors.brandYellow,
-    fontFamily: 'psemibold',
     textAlign: 'center',
     fontSize: 36
   },

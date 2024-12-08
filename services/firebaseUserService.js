@@ -168,7 +168,7 @@ export const fetchSchoolByEmailDomain = async (emailDomain) => {
 
 export const fetchSchoolByName = async (name) => {
     if (!name) {
-        console.error("Invalid parameters in fetchSchoolName.");
+        // console.error("Invalid parameters in fetchSchoolName.");
         return null;
     }
 
