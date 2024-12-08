@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, addDoc, setDoc, doc, deleteDoc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, addDoc, setDoc, doc, deleteDoc, updateDoc, onSnapshot } from "firebase/firestore";
 import { db } from '../config';
 
 export const getPosts = async (schoolId) => {
@@ -27,6 +27,30 @@ export const getPosts = async (schoolId) => {
     } catch (error) {
         console.error('Error fetching posts', error);
         return [];
+    }
+};
+
+export const listenToEvents = (schoolId, callback) => {
+    if (!schoolId) {
+        console.error('School ID is required to fetch events');
+        return;
+    }
+
+    try {
+        const col = collection(db, 'events');
+        const q = query(col, where('schoolId', '==', schoolId));
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const events = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            callback(events); // Pass the updated events to the callback
+        });
+
+        return unsubscribe; // Return the unsubscribe function for cleanup
+    } catch (error) {
+        console.error('Error setting up real-time listener for events:', error);
     }
 };
 

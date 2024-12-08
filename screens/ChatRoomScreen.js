@@ -32,44 +32,29 @@ export const ChatRoomScreen = ({ route, navigation }) => {
             try {
                 const roomDocRef = doc(db, 'rooms', roomId);
                 const roomDoc = await getDoc(roomDocRef);
-
+    
                 if (roomDoc.exists()) {
                     const roomData = roomDoc.data();
                     const participantIds = roomData.participants || [];
-
+    
                     const fetchedParticipants = await Promise.all(
                         participantIds.map(async (userId) => {
                             const userDoc = await getDoc(doc(db, 'users', userId));
                             return userDoc.exists() ? { id: userId, ...userDoc.data() } : null;
                         })
                     );
-
+    
                     setParticipants(fetchedParticipants.filter(Boolean));
-                } else {
-                    await createRoomIfNotExists();
                 }
             } catch (error) {
                 console.error('Error fetching participants:', error);
                 Alert.alert('Error', 'Unable to fetch participants.');
             }
         };
-
-        const createRoomIfNotExists = async () => {
-            try {
-                const roomRef = doc(db, 'rooms', roomId);
-                await setDoc(roomRef, {
-                    participants: [currentUser?.uid, item?.id],
-                    createdAt: Timestamp.fromDate(new Date()),
-                });
-                console.log('Room created successfully');
-            } catch (error) {
-                console.error('Error creating room:', error);
-                Alert.alert('Error', 'Unable to create room.');
-            }
-        };
-
+    
         fetchParticipants();
     }, [roomId]);
+    
 
     useEffect(() => {
         const messagesRef = collection(db, 'rooms', roomId, 'messages');
@@ -91,20 +76,35 @@ export const ChatRoomScreen = ({ route, navigation }) => {
 
     const handleSendMessage = async () => {
         if (!message.trim()) return;
-
+    
         try {
+            // Check if the room exists
+            const roomRef = doc(db, 'rooms', roomId);
+            const roomDoc = await getDoc(roomRef);
+    
+            if (!roomDoc.exists()) {
+                // Create the room if it doesn't exist
+                await setDoc(roomRef, {
+                    participants: [currentUser?.uid, item?.id],
+                    createdAt: Timestamp.fromDate(new Date()),
+                });
+                console.log('Room created successfully.');
+            }
+    
+            // Send the message
             const messagesRef = collection(db, 'rooms', roomId, 'messages');
             await addDoc(messagesRef, {
                 userId: currentUser?.uid,
                 text: message.trim(),
                 createdAt: Timestamp.fromDate(new Date()),
             });
-
+    
             setMessage('');
         } catch (error) {
             Alert.alert('Message', error.message);
         }
     };
+    
 
     const renderMessageItem = ({ item: message }) => {
         const messageTime = format(new Date(message?.createdAt?.seconds * 1000), 'HH:mm');

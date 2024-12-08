@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, A
 import { Calendar } from 'react-native-calendars';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { AuthenticatedUserContext, SchoolContext } from '../providers';
-import { addEvent, getEvents, deleteEvent } from '../services/firebasePublicDataService';
+import { addEvent, getEvents, deleteEvent, listenToEvents } from '../services/firebasePublicDataService';
 import { setDoc, doc } from 'firebase/firestore';
 import { db } from '../config';
 
@@ -34,35 +34,31 @@ export const CalendarScreen = ({ allowEditing, navigation }) => {
     const isEditMode = !!newEvent.id; // true if editing, false if adding
 
 
-    // Fetch events from Firestore
-    const fetchEvents = async () => {
+    useEffect(() => {
         if (!schoolDetail) return;
-        try {
-            const fetchedEvents = await getEvents(schoolDetail);
-
+    
+        const unsubscribe = listenToEvents(schoolDetail, (fetchedEvents) => {
             const formattedEvents = {};
             fetchedEvents.forEach((event) => {
                 const { date, ...rest } = event;
                 if (!date) {
                     console.error('Event is missing a date:', event);
-                    return; // Skip events without a date
+                    return;
                 }
-
+    
                 if (!formattedEvents[date]) {
                     formattedEvents[date] = [];
                 }
                 formattedEvents[date].push(rest);
             });
-            setEvents(formattedEvents);
-        } catch (error) {
-            console.error('Error fetching events:', error);
-        }
-    };
-
-    useEffect(() => {
-        setEvents({});
-        fetchEvents();
+            setEvents(formattedEvents); // Update state with new data
+        });
+    
+        return () => {
+            if (unsubscribe) unsubscribe(); // Cleanup listener on unmount
+        };
     }, [schoolDetail]);
+    
 
     // Add Events Button
     useEffect(() => {
@@ -89,12 +85,12 @@ export const CalendarScreen = ({ allowEditing, navigation }) => {
             alert('Please fill all fields.');
             return;
         }
-
+    
         if (!schoolDetail) {
             alert('School ID is missing.');
             return;
         }
-
+    
         const eventToSave = {
             title: newEvent.title,
             type: newEvent.type,
@@ -104,7 +100,7 @@ export const CalendarScreen = ({ allowEditing, navigation }) => {
             schoolId: schoolDetail,
             userId: user?.uid, // Add userId for ownership
         };
-
+    
         try {
             if (newEvent.id) {
                 // Editing an existing event
@@ -118,7 +114,7 @@ export const CalendarScreen = ({ allowEditing, navigation }) => {
                     alert('Event added successfully!');
                 }
             }
-
+    
             setAddEventModalVisible(false);
             setNewEvent({
                 title: '',
@@ -128,12 +124,12 @@ export const CalendarScreen = ({ allowEditing, navigation }) => {
                 time: '',
                 id: null, // Reset the id for new events
             });
-            fetchEvents(); // Refresh events after add/edit
         } catch (error) {
             console.error('Error saving event:', error);
             alert('Failed to save event.');
         }
     };
+    
 
     const handleDeleteEvent = async (eventId) => {
         Alert.alert(

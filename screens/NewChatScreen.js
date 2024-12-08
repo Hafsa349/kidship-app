@@ -18,8 +18,9 @@ export const NewChatScreen = ({ navigation }) => {
   const currentUser = auth.currentUser;
 
   useEffect(() => {
+    console.log('School Detail:', schoolDetail);
+
     const fetchUserData = async () => {
-      console.log('User object:', user); // Debugging
       if (currentUser && currentUser.uid) {
         try {
           const userDetails = await fetchUserDetails(currentUser.uid);
@@ -51,27 +52,36 @@ export const NewChatScreen = ({ navigation }) => {
 
   const fetchUsers = async () => {
     try {
-      console.log('schoolDetail', schoolDetail)
-      var roles = PARENT_ROLES
-      if(userDetail?.userRoles?.includes(ADMIN_ROLES)){
-        roles = ADMIN_ROLES;
-      }
-      const allUsers = await fetchUsersBySchool(schoolDetail, roles)
-
-      const sortedUsers = allUsers?.filter(user => user.id !== currentUser?.uid)?.sort((a, b) => {
-        if (a.firstName.toLowerCase() === b.firstName.toLowerCase()) {
-          return a.lastName.toLowerCase().localeCompare(b.lastName.toLowerCase());
+        // Ensure schoolDetail is a valid string (schoolId)
+        if (!schoolDetail) {
+            throw new Error('School ID is missing.');
         }
-        return a.firstName.toLowerCase().localeCompare(b.firstName.toLowerCase());
-      });
 
-      setUsers(sortedUsers);
-      setFilteredUsers(sortedUsers);
+        // Determine roles for filtering
+        const roles = userDetail?.userRoles?.includes('admin') || userDetail?.userRoles?.includes('teacher')
+            ? ADMIN_ROLES // Fetch all users for Admin/Teacher
+            : PARENT_ROLES; // Exclude parents for Parent role
+
+        // Fetch users by school and role
+        const allUsers = await fetchUsersBySchool(schoolDetail, roles);
+
+        // Filter out the current user and sort the results
+        const sortedUsers = allUsers
+            .filter((user) => user.id !== currentUser?.uid)
+            .sort((a, b) => {
+                if (a.firstName.toLowerCase() === b.firstName.toLowerCase()) {
+                    return a.lastName.toLowerCase().localeCompare(b.lastName.toLowerCase());
+                }
+                return a.firstName.toLowerCase().localeCompare(b.firstName.toLowerCase());
+            });
+
+        setUsers(sortedUsers);
+        setFilteredUsers(sortedUsers);
     } catch (error) {
-      console.error('Error fetching users:', error);
-      Alert.alert('Error', 'Failed to load users. Please try again later.');
+        console.error('Error fetching users:', error);
+        Alert.alert('Error', 'Failed to load users. Please try again later.');
     }
-  };
+};
 
   useEffect(() => {
     fetchUsers();
