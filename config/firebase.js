@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import { getAuth, connectAuthEmulator, getReactNativePersistence } from 'firebase/auth'; // Import necessary auth functions
+import { getAuth, connectAuthEmulator, getReactNativePersistence, initializeAuth } from 'firebase/auth'; // Import necessary auth functions
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const { expoConfig } = Constants;
@@ -14,16 +14,19 @@ const firebaseConfig = {
   messagingSenderId: expoConfig.extra.messagingSenderId,
   appId: expoConfig.extra.appId,
 };
-
+// Initialize Firebase App
 const firebaseApp = initializeApp(firebaseConfig);
 // Initialize Firestore
 const db = getFirestore(firebaseApp);
-console.log("Firestore initialized:", db);
+console.log('Firestore initialized:', db);
+// Initialize Storage
 const storage = getStorage(firebaseApp);
 
-// Initialize Auth
-const auth = getAuth(firebaseApp);
-console.log("auth initialized:");
+// Initialize Auth with React Native Persistence
+const auth = initializeAuth(firebaseApp, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
+console.log('Auth initialized with persistence');
 
 // If you are using authentication emulator, connect it here
 // connectAuthEmulator(auth, 'http://localhost:9099');
