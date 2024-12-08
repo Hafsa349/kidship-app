@@ -299,36 +299,36 @@ export const getComments = async (postId) => {
 export const fetchUsersBySchool = async (schoolId, userRoles) => {
     try {
         if (!schoolId) {
-            throw new Error('schoolId is required to fetch users');
+            throw new Error('School ID is required to fetch users');
         }
 
-        // Reference the Firestore collection
         const col = collection(db, 'users');
         let q;
 
-        // Apply filtering based on roles
-        if (userRoles.includes('admin') || userRoles.includes('teacher')) {
-            // Fetch all users in the school (Admin/Teacher role)
-            q = query(col, where('schoolId', '==', schoolId));
-        } else if (userRoles.includes('parent')) {
-            // Fetch users in the school, excluding parents
+        if (userRoles.includes('parent')) {
+            // If the user is a parent, fetch all users except parents
             q = query(
                 col,
                 where('schoolId', '==', schoolId),
-                where('userRoles', 'array-contains-any', ['student', 'teacher', 'admin']) // Exclude parents
+                where('userRoles', 'array-contains-any', ['teacher', 'admin', 'student']) // Exclude parents
             );
         } else {
-            throw new Error('Invalid user role');
+            // If the user is not a parent, fetch all users
+            q = query(col, where('schoolId', '==', schoolId));
         }
 
         // Fetch and map the users
         const snapshot = await getDocs(q);
+        console.log('Fetched users from Firestore:', snapshot.docs.map(doc => doc.data())); // Debug log
         return snapshot.docs.map((doc) => ({
-            id: doc.id,       // Document ID
-            ...doc.data(),    // User data
+            id: doc.id,
+            ...doc.data(),
         }));
     } catch (error) {
         console.error('Error fetching users by school:', error);
         return [];
     }
 };
+
+
+

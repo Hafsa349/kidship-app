@@ -145,21 +145,19 @@ export const CalendarScreen = ({ allowEditing, navigation }) => {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            await deleteEvent(eventId); // Replace with your Firestore delete logic
+                            await deleteEvent(eventId); // Ensure `deleteEvent` is properly implemented
                             alert('Event deleted successfully!');
-                            fetchEvents(); // Refresh the events after deletion
-                            closeEventDetails()
+                            closeEventDetails(); // Close the modal
                         } catch (error) {
                             console.error('Error deleting event:', error);
                             alert('Failed to delete event.');
-
                         }
                     },
                 },
             ],
             { cancelable: true }
         );
-    };
+    };    
 
 
     const handleEditEvent = (event) => {

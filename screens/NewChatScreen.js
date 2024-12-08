@@ -22,14 +22,17 @@ export const NewChatScreen = ({ navigation }) => {
 
     const fetchUserData = async () => {
       if (currentUser && currentUser.uid) {
-        try {
-          const userDetails = await fetchUserDetails(currentUser.uid);
-          setUserDetail(userDetails);
-        } catch (error) {
-          console.error('Error fetching user details:', error);
-        }
+          try {
+              const userDetails = await fetchUserDetails(currentUser.uid);
+              console.log("Fetched user details in NewChatScreen:", userDetails); // Debugging log
+              setUserDetail(userDetails); // Set the user details
+          } catch (error) {
+              console.error('Error fetching user details:', error);
+          }
+      } else {
+          console.warn("No current user found.");
       }
-    };
+  };
 
     fetchUserData();
   }, [currentUser]);
@@ -52,22 +55,25 @@ export const NewChatScreen = ({ navigation }) => {
 
   const fetchUsers = async () => {
     try {
-        // Ensure schoolDetail is a valid string (schoolId)
         if (!schoolDetail) {
             throw new Error('School ID is missing.');
         }
 
-        // Determine roles for filtering
-        const roles = userDetail?.userRoles?.includes('admin') || userDetail?.userRoles?.includes('teacher')
-            ? ADMIN_ROLES // Fetch all users for Admin/Teacher
-            : PARENT_ROLES; // Exclude parents for Parent role
+        if (!userDetail || !userDetail.userRoles) {
+            throw new Error('User roles are missing. Ensure user details are fetched correctly.');
+        }
 
-        // Fetch users by school and role
-        const allUsers = await fetchUsersBySchool(schoolDetail, roles);
+        console.log('Current user roles:', userDetail.userRoles);
+
+        // Fetch users based on the current user's roles
+        const allUsers = await fetchUsersBySchool(schoolDetail, userDetail.userRoles);
+
+        // Debug: Log fetched users
+        console.log('Fetched users:', allUsers);
 
         // Filter out the current user and sort the results
         const sortedUsers = allUsers
-            .filter((user) => user.id !== currentUser?.uid)
+            .filter((user) => user.id !== currentUser?.uid) // Exclude the current user
             .sort((a, b) => {
                 if (a.firstName.toLowerCase() === b.firstName.toLowerCase()) {
                     return a.lastName.toLowerCase().localeCompare(b.lastName.toLowerCase());
@@ -83,9 +89,13 @@ export const NewChatScreen = ({ navigation }) => {
     }
 };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+
+useEffect(() => {
+  if (userDetail && userDetail.userRoles) {
+      fetchUsers(); // Only fetch users after userDetail is populated
+  }
+}, [userDetail, schoolDetail]);
+
 
   useEffect(() => {
     if (searchQuery.trim() === '') {
